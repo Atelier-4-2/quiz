@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#ffffff">
   <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-  <title>Histoire — 4·2</title>
+  <title>Quiz — 4·2</title>
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -32,6 +32,8 @@
       --ok-bg: #dcfce7;
       --bad: #b91c1c;
       --bad-bg: #fee2e2;
+      --warn: #b45309;
+      --warn-bg: #fef3c7;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -50,6 +52,8 @@
         --ok-bg: rgb(21 128 61 / 22%);
         --bad: #f87171;
         --bad-bg: rgb(185 28 28 / 22%);
+        --warn: #fbbf24;
+        --warn-bg: rgb(180 83 9 / 22%);
       }
       #brand-home .brand-mark,
       #brand-home .brand-tool { color: #f5f5f7; }
@@ -114,6 +118,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      flex-wrap: wrap;
     }
 
     #brand-home { text-decoration: none; }
@@ -121,7 +126,26 @@
     .nav-right {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .deck-bar {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .deck-select {
+      min-height: 32px;
+      max-width: 220px;
+      padding: 3px 10px;
+      border-radius: 980px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
     }
 
     .stat-pill {
@@ -228,7 +252,7 @@
     .btn {
       appearance: none;
       min-height: 38px;
-      padding: 7px 15px;
+      padding: 7px 14px;
       border-radius: 980px;
       border: 1px solid var(--line);
       background: var(--paper);
@@ -238,13 +262,32 @@
       cursor: pointer;
       transition: background-color 140ms ease, border-color 140ms ease;
       white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
     }
     .btn:hover:not(:disabled) { background: var(--surface); border-color: var(--ink); }
     .btn.primary { background: var(--ink); color: var(--on-primary); border-color: var(--ink); }
     .btn.primary:hover:not(:disabled) { opacity: 0.88; background: var(--ink); }
     .btn.ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
     .btn.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+    .btn.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+    .btn.sm { min-height: 32px; padding: 4px 11px; font-size: 12px; }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .srs-btn {
+      flex-direction: column;
+      gap: 1px;
+      padding: 5px 12px;
+      min-height: 42px;
+      line-height: 1.2;
+    }
+    .srs-btn small {
+      font-size: 10.5px;
+      font-weight: 500;
+      opacity: 0.78;
+    }
 
     /* Quizlet-style clickable card */
     .quizlet-card {
@@ -277,13 +320,8 @@
       transition: border-color 150ms ease, transform 120ms ease;
     }
 
-    .quizlet-stage:hover {
-      border-color: var(--ink);
-    }
-
-    .quizlet-stage:active {
-      transform: scale(0.995);
-    }
+    .quizlet-stage:hover { border-color: var(--ink); }
+    .quizlet-stage:active { transform: scale(0.995); }
 
     .quizlet-front-photo {
       width: 100%;
@@ -292,7 +330,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #111;
+      background: var(--surface);
+      padding: 8px;
     }
 
     .quizlet-front-photo img {
@@ -329,18 +368,13 @@
       gap: 14px;
     }
 
-    .quizlet-back-head {
-      display: grid;
-      gap: 4px;
-    }
-
+    .quizlet-back-head { display: grid; gap: 4px; }
     .quizlet-back-year {
       font-family: "Instrument Sans", sans-serif;
       font-size: 14px;
       font-weight: 600;
       color: var(--muted);
     }
-
     .quizlet-back-name {
       margin: 0;
       font-size: clamp(22px, 3vw, 30px);
@@ -348,7 +382,6 @@
       letter-spacing: -0.02em;
       line-height: 1.2;
     }
-
     .quizlet-back-arch {
       font-size: 17px;
       font-weight: 600;
@@ -385,14 +418,19 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 8px;
     }
 
     .media-pane img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       display: block;
       cursor: zoom-in;
+    }
+
+    .exam-card .media-pane {
+      height: 300px;
     }
 
     .media-fallback {
@@ -476,7 +514,9 @@
       margin-bottom: 3px;
     }
 
-    .field-row input {
+    .field-row input,
+    .field-row textarea,
+    .field-row select {
       width: 100%;
       padding: 9px 12px;
       border-radius: 10px;
@@ -507,6 +547,20 @@
       transition: border-color 120ms ease, background-color 120ms ease;
     }
     .option-btn:hover:not(:disabled) { border-color: var(--ink); background: var(--surface); }
+
+    .option-btn.idk-btn {
+      border-style: dashed;
+      color: var(--muted);
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .option-btn.idk-btn:hover:not(:disabled) {
+      color: var(--ink);
+      border-color: var(--ink);
+      background: var(--surface);
+    }
 
     .option-key {
       flex-shrink: 0;
@@ -597,7 +651,7 @@
       margin-top: 4px;
     }
 
-    /* Scrollable list modes (Exam / Pairs / All 30) */
+    /* Scrollable list modes */
     .grid-list { display: grid; gap: 12px; }
     .pairs-grid {
       display: grid;
@@ -619,6 +673,9 @@
       gap: 14px;
       align-items: start;
     }
+    .list-row.no-thumb {
+      grid-template-columns: 1fr;
+    }
     .list-thumb {
       width: 120px;
       height: 84px;
@@ -632,8 +689,9 @@
       font-size: 11px;
       color: var(--muted);
       text-align: center;
+      padding: 4px;
     }
-    .list-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .list-thumb img { width: 100%; height: 100%; object-fit: contain; display: block; cursor: zoom-in; }
 
     /* Lightbox modal */
     .lightbox {
@@ -655,13 +713,66 @@
       object-fit: contain;
     }
 
+    /* Deck Manager Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: rgba(0, 0, 0, 0.52);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-panel {
+      width: min(680px, 100%);
+      max-height: 88dvh;
+      overflow-y: auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .modal-head h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .modal-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
+    }
+    .deck-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
     @media (max-width: 859px) {
       .split-card {
         grid-template-columns: 1fr;
         gap: 14px;
       }
       .media-pane {
-        height: 220px;
+        height: 240px;
         min-height: 220px;
       }
       .list-row { grid-template-columns: 1fr; }
@@ -674,14 +785,18 @@
   <header class="page-header">
     <div class="nav-inner">
       <a id="brand-home" class="product-name" href="https://atelier-4-2.github.io/site/" aria-label="4·2 홈으로">
-        <span class="brand-mark">4·2</span><span class="brand-divider" aria-hidden="true"></span><span class="brand-tool">Histoire</span>
+        <span class="brand-mark">4·2</span><span class="brand-divider" aria-hidden="true"></span><span class="brand-tool" id="brandToolName">Quiz</span>
       </a>
       <div class="nav-right">
-        <span class="stat-pill ok" id="statMastered">암기 0/30</span>
+        <div class="deck-bar">
+          <select class="deck-select" id="deckSelect" aria-label="학습 덱 선택"></select>
+          <button class="btn sm" id="openDeckModalBtn" title="덱 만들기 / 가져오기 / 관리">+ 덱</button>
+        </div>
+        <span class="stat-pill ok" id="statMastered">암기 0/0</span>
         <span class="stat-pill bad" id="statReview">복습 0</span>
         <nav class="site-switch" aria-label="Atelier 4·2 사이트 전환">
           <a href="https://atelier-4-2.github.io/site/">Terrain</a>
-          <a href="./" aria-current="page">Histoire</a>
+          <a href="./" aria-current="page">Quiz</a>
         </nav>
       </div>
     </div>
@@ -690,14 +805,7 @@
 
   <main class="workspace">
     <div class="toolbar">
-      <div class="mode-tabs" id="modeTabs">
-        <button class="pill-btn active" data-mode="flashcard">플래시카드</button>
-        <button class="pill-btn" data-mode="quiz">4지선다</button>
-        <button class="pill-btn" data-mode="photo">사진 퀴즈</button>
-        <button class="pill-btn" data-mode="exam">실전 3문제</button>
-        <button class="pill-btn" data-mode="pairs">헷갈리는 6쌍</button>
-        <button class="pill-btn" data-mode="list">전체 30개</button>
-      </div>
+      <div class="mode-tabs" id="modeTabs"></div>
       <div class="filters" id="filtersBar"></div>
     </div>
 
@@ -708,81 +816,94 @@
     <img id="lightboxImg" src="" alt="확대 이미지">
   </div>
 
+  <!-- Deck Manager Modal -->
+  <div class="modal-backdrop" id="deckModal">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="deckModalTitle">
+      <div class="modal-head">
+        <h2 id="deckModalTitle">덱 관리 · Quizlet / Anki 가져오기</h2>
+        <button class="btn sm" id="closeDeckModalBtn">닫기</button>
+      </div>
+      <div class="modal-tabs" id="modalTabs">
+        <button class="pill-btn active" data-mtab="create">새 덱 만들기</button>
+        <button class="pill-btn" data-mtab="addcard">현재 덱에 카드 추가</button>
+        <button class="pill-btn" data-mtab="manage">내 덱 목록 / 백업</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="srs.js"></script>
+  <script src="decks.js"></script>
   <script>
-    const PROJECTS = [
-      { id: 1, chapter: "#1 Crise du Mouvement moderne", name: "Pruitt-Igoe", architect: "Minoru Yamasaki", location: "St. Louis, États-Unis", year: "1950 (슬라이드), démolition 1972", desc: "Grand ensemble de logements sociaux, application radicale du fonctionnalisme. Dégradation rapide, démoli en 1972 : symbole de l'échec du modernisme.", koTip: "기능주의의 급진적 적용 → 빠른 노후화 → 1972년 폭파 철거 (모더니즘 실패의 상징).", img: "images/01.jpg" },
-      { id: 2, chapter: "#1 Crise du Mouvement moderne", name: "Robin Hood Gardens", architect: "Alison & Peter Smithson (Team 10)", location: "Londres, Poplar", year: "1972", desc: "Logement social expérimental, « streets in the sky ». Tentative d'humaniser le modernisme, résultats mitigés, démoli récemment.", koTip: "Smithson 부부 (Team 10) · '하늘 길(streets in the sky)' · Byker Wall과 구분!", img: "images/02.jpg" },
-      { id: 3, chapter: "#1 Crise du Mouvement moderne", name: "Byker Wall", architect: "Ralph Erskine", location: "Newcastle, Royaume-Uni", year: "1982", desc: "Logement social participatif : les habitants intègrent le processus. Architecture adaptée au contexte local (climat), alternative au grand ensemble.", koTip: "주민 참여형(participatif) + 북쪽 바람 막는 긴 벽(기후 적응).", img: "images/03.jpg" },
-      { id: 4, chapter: "#1 Crise du Mouvement moderne", name: "Espaces d'Abraxas", architect: "Ricardo Bofill (Taller de Arquitectura)", location: "Noisy-le-Grand, France", year: "1983", desc: "Logement monumental, réintroduction de formes classiques. Critique du fonctionnalisme, architecture comme décor, ambiguïté entre utopie et spectacle.", koTip: "파리 근교(Noisy-le-Grand), 고전 기둥·아치 형태의 거대 기념비적 주거 (Walden 7과 구분!).", img: "images/04.jpg" },
-      { id: 5, chapter: "#1 Crise du Mouvement moderne", name: "Habitat 67", architect: "Moshe Safdie", location: "Montréal, Canada (Expo 67)", year: "1967", desc: "Prototype de logement modulaire expérimental. Réponse critique aux grands ensembles : densité compatible avec la qualité de vie.", koTip: "몬트리올 엑스포 67 · 프리패브 모듈러 적층 주거.", img: "images/05.jpg" },
-      { id: 6, chapter: "#1 Crise du Mouvement moderne", name: "Siedlung Halen", architect: "Atelier 5", location: "près de Berne, Suisse", year: "1961", desc: "Logement dense intégré au paysage (pente, forêt), échelle humaine. Alternative au grand ensemble, projet durable dans le temps.", koTip: "베른 근처 경사지·숲에 통합된 고밀 저층 주거, 인간적 스케일.", img: "images/06.jpg" },
-      { id: 7, chapter: "#1 Crise du Mouvement moderne", name: "PREVI", architect: "concours international (Aldo van Eyck, James Stirling, Atelier 5, Georges Candilis, Charles Correa…)", location: "Lima, Pérou", year: "1970", desc: "Projet expérimental de logement évolutif : les habitants agrandissent leur maison. Critique du modèle standardisé.", koTip: "국제 공모 · 거주자가 스스로 증축하는 진화형(évolutif) 주거.", img: "images/07.jpg" },
-      { id: 8, chapter: "#1 Crise du Mouvement moderne", name: "La Grande Motte", architect: "Jean Balladur", location: "Hérault (Languedoc), France", year: "1970", desc: "Station balnéaire planifiée (Mission Racine), pyramides répétitives et iconiques. Modernisme touristique tardif, logique sérielle et économique.", koTip: "Mission Racine 계획 휴양 도시 · 반복되는 피라미드 매스.", img: "images/08.jpg" },
-      { id: 9, chapter: "#1 Crise du Mouvement moderne", name: "Nakagin Capsule Tower", architect: "Kisho Kurokawa", location: "Tokyo (Ginza)", year: "1972 (démolie en 2022)", desc: "Projet métaboliste : capsules d'habitation remplaçables fixées sur deux noyaux. Vision évolutive de la ville. Démolie en 2022.", koTip: "교체 가능한 캡슐 + 2개의 코어 (메타볼리즘, 2022년 철거).", img: "images/09.jpg" },
-      { id: 10, chapter: "#2 Postmodernismes", name: "Guild House", architect: "Robert Venturi (& John Rauch)", location: "Philadelphie, États-Unis", year: "1963", desc: "Logement pour personnes âgées, façade volontairement banale, antenne TV comme symbole. Référence ironique au modernisme : projet critique fondateur (« decorated shed »).", koTip: "노인 주거 · 의도적으로 평범한 입면 + TV 안테나 상징 ('decorated shed').", img: "images/10.jpg" },
-      { id: 11, chapter: "#2 Postmodernismes", name: "Piazza d'Italia", architect: "Charles Moore", location: "La Nouvelle-Orléans, États-Unis", year: "1978", desc: "Espace public scénographique pour la communauté italienne. Colonnes et arcs antiques en néon et inox, couleurs : architecture ludique et narrative.", koTip: "이탈리아계 커뮤니티 광장 · 네온·스테인리스로 재해석한 고전 기둥과 아치.", img: "images/11.jpg" },
-      { id: 12, chapter: "#2 Postmodernismes", name: "Teatro del Mondo", architect: "Aldo Rossi", location: "Venise (Biennale 1980)", year: "1980", desc: "Théâtre flottant temporaire en bois sur une barge. Formes archétypales simples, mémoire urbaine de Venise : architecture comme artefact.", koTip: "베니스 비엔날레 수상 목조 가설 극장 · 원형적 형태와 도시의 기억.", img: "images/12.jpg" },
-      { id: 13, chapter: "#2 Postmodernismes", name: "Sony Tower (AT&T Building)", architect: "Philip Johnson & John Burgee", location: "New York, Madison Avenue", year: "1984", desc: "Gratte-ciel au sommet en fronton brisé « Chippendale ». Citation historique explicite, architecture-signe, postmodernisme corporate.", koTip: "치펜데일(Chippendale) 부서진 박공 지붕 · 기업형 포스트모더니즘.", img: "images/13.jpg" },
-      { id: 14, chapter: "#2 Postmodernismes", name: "Walden 7", architect: "Ricardo Bofill", location: "Sant Just Desvern, près de Barcelone", year: "1975", desc: "Logements expérimentaux, organisation labyrinthique autour de cours. Référence aux formes méditerranéennes, couleur et monumentalité.", koTip: "바르셀로나 근교 · 붉은 미로형 중정 집합주택 (Abraxas보다 먼저, 1975).", img: "images/14.jpg" },
-      { id: 15, chapter: "#2 Postmodernismes", name: "Kanchanjunga Apartments", architect: "Charles Correa", location: "Mumbai, Inde", year: "1983", desc: "Tour de logements adaptée au climat tropical : jardins suspendus à double hauteur, orientation ouest. Hybridation modernisme / tradition (véranda).", koTip: "뭄바이 고층 주거 · 2층 높이 공중 정원(베란다의 현대적 번역) · 서향 바람.", img: "images/15.jpg" },
-      { id: 16, chapter: "#3 Régionalisme critique", name: "New Gourna", architect: "Hassan Fathy", location: "Gourna, près de Louxor, Égypte", year: "1970 (슬라이드)", desc: "Village en terre crue, voûtes et coupoles nubiennes. Techniques vernaculaires, adaptation climatique, architecture sociale, refus du modernisme importé.", koTip: "생흙(흙벽돌) + 누비아식 볼트·돔 · 수입 모더니즘 거부.", img: "images/16.jpg" },
-      { id: 17, chapter: "#3 Régionalisme critique", name: "Hôtel de ville de Säynätsalo", architect: "Alvar Aalto", location: "Säynätsalo, Finlande", year: "1952", desc: "Bâtiment civique en brique organisé autour d'une cour surélevée. Relation au paysage, échelle humaine, modernité organique : précurseur du régionalisme critique.", koTip: "벽돌 시청사 + 들어 올려진 중정 · 비판적 지역주의의 선구자.", img: "images/17.jpg" },
-      { id: 18, chapter: "#3 Régionalisme critique", name: "Azuma House (Row House Sumiyoshi)", architect: "Tadao Ando", location: "Osaka, Japon", year: "1976", desc: "Maison en béton introvertie, cour centrale ouverte au ciel. Travail sur la lumière et le vide, minimalisme contextuel.", koTip: "노출 콘크리트 · 외부에 닫히고 하늘로 열린 중정(빛과 비움).", img: "images/18.jpg" },
-      { id: 19, chapter: "#3 Régionalisme critique", name: "Chapelle Saint-Benoît", architect: "Peter Zumthor", location: "Sumvitg, Grisons, Suisse", year: "1989", desc: "Église en bois (plan en goutte d'eau) intégrée au paysage alpin. Matériaux locaux, forme compacte, architecture sensorielle.", koTip: "물방울 평면 목조 예배당 · 알프스 지역 재료와 감각적 건축.", img: "images/19.jpg" },
-      { id: 20, chapter: "#3 Régionalisme critique", name: "Assemblée nationale du Koweït", architect: "Jørn Utzon", location: "Koweït City", year: "1972 (슬라이드; achevée 1982)", desc: "Inspirée de formes vernaculaires (tente, souk), grande toiture-auvent. Adaptation au climat désertique, hybridation culturelle hors d'Europe.", koTip: "유촌(Utzon) · 베두인 텐트·수크(시장)에서 영감 받은 거대 캐노피 지붕.", img: "images/20.jpg" },
-      { id: 21, chapter: "#3 Régionalisme critique", name: "Parlement du Bangladesh (Jatiya Sangsad)", architect: "Louis Kahn", location: "Dacca, Bangladesh", year: "1982", desc: "Projet monumental de formes géométriques simples (cercles, triangles évidés). Lumière et matière, adaptation au climat tropical, symbole politique.", koTip: "루이스 칸 · 물 위의 기념비적 콘크리트 매스, 원·삼각형 개구부.", img: "images/21.jpg" },
-      { id: 22, chapter: "#3 Régionalisme critique", name: "FAU-USP", architect: "João Batista Vilanova Artigas", location: "São Paulo, Brésil", year: "1972 (슬라이드; projet 1961–69)", desc: "École d'architecture : grand espace libre central sous un toit en béton, rampes. Architecture sociale, modernité critique.", koTip: "⚠ 슬라이드에 'argentin' 오타가 있지만 Artigas는 브라질(brésilien) 건축가! 거대 콘크리트 지붕 아래 열린 학교.", img: "images/22.jpg" },
-      { id: 23, chapter: "#4 Modernités tropicales", name: "Gandhi Smarak Sangrahalaya", architect: "Charles Correa", location: "Ahmedabad (ashram Sabarmati), Inde", year: "1963", desc: "Musée pavillonnaire, modules carrés ouverts et fragmentés autour d'un bassin. Ventilation naturelle, brique et tuiles locales : architecture climatique exemplaire.", koTip: "분절된 정사각형 파빌리온 + 수공간 + 자연 환기 (박물관).", img: "images/23.jpg" },
-      { id: 24, chapter: "#4 Modernités tropicales", name: "MASP", architect: "Lina Bo Bardi", location: "São Paulo, Avenida Paulista", year: "1968", desc: "Musée suspendu entre deux portiques rouges, grande portée. Le rez-de-chaussée reste un espace public libre : architecture sociale, icône brésilienne.", koTip: "빨간 포르티코(기둥) 2개에 매달린 미술관 · 1층을 완전한 공공 광장으로 비움.", img: "images/24.jpg" },
-      { id: 25, chapter: "#4 Modernités tropicales", name: "IIM Bangalore", architect: "Balkrishna Doshi", location: "Bangalore, Inde", year: "1983", desc: "Campus structuré par des cours et des circulations ombragées (pergolas). Adaptation au climat tropical, référence aux villes traditionnelles : architecture comme système.", koTip: "중정과 그늘진 동선(퍼골라)으로 엮인 캠퍼스 · 전통 도시 구조 참조.", img: "images/25.jpg" },
-      { id: 26, chapter: "#4 Modernités tropicales", name: "Kandalama Hotel", architect: "Geoffrey Bawa", location: "Dambulla, Sri Lanka", year: "1983 (슬라이드; ouvert 1994)", desc: "Hôtel intégré dans la jungle et la falaise, couvert de végétation. Fusion architecture / paysage, ventilation naturelle : archétype du tropical modernism.", koTip: "절벽과 정글에 스며든 호텔 · 식생 피복 + 자연 환기.", img: "images/26.jpg" },
-      { id: 27, chapter: "#5 Métabolisme japonais", name: "Sky House", architect: "Kiyonori Kikutake", location: "Tokyo", year: "1958", desc: "Plateforme libre surélevée sur quatre voiles ; les espaces servis (« move-nets ») s'ajoutent au fil du temps. Prototype domestique du métabolisme.", koTip: "4개 벽체 위에 들어 올린 주거 + 교체 가능한 'move-nets'.", img: "images/27.jpg" },
-      { id: 28, chapter: "#5 Métabolisme japonais", name: "Yamanashi Broadcasting Center", architect: "Kenzo Tange", location: "Kofu, Japon", year: "1967", desc: "Bâtiment organisé autour de noyaux verticaux (cylindres) ; plateaux pouvant être prolongés. Idée de structure-support.", koTip: "원통형 수직 코어들 사이에 바닥판을 끼워 확장 가능하게 만든 구조.", img: "images/28.jpg" },
-      { id: 29, chapter: "#7 Néo-capitales", name: "Brasília", architect: "Lúcio Costa (Plano Piloto) & Oscar Niemeyer (bâtiments)", location: "Brésil (plateau central)", year: "1960", desc: "Ville planifiée ex nihilo, axe monumental + axes résidentiels (forme d'avion/croix). Zoning fonctionnel, projet politique national, icône du modernisme mondial.", koTip: "백지 위 계획 수도 (비행기/십자 형태 Plano Piloto) · Costa(도시계획) + Niemeyer(건물).", img: "images/29.jpg" },
-      { id: 30, chapter: "#7 Néo-capitales", name: "Chandigarh (Capitol Complex)", architect: "Le Corbusier (avec Pierre Jeanneret)", location: "Chandigarh, Pendjab, Inde", year: "1963 (Capitol, slide) ; 1965", desc: "Capitale du Pendjab après la Partition. Architecture monumentale en béton, modernisme exporté : symbole d'un État postcolonial (Nehru).", koTip: "인도 분리독립 후 펀자브 주도 · 네루의 탈식민 국가 상징 · 노출 콘크리트 기념비성.", img: "images/30.jpg" }
-    ];
+    const SRS = window.AtelierSRS;
+    const { BUILTIN_DECKS, parseBulkText } = window.AtelierDecks;
 
-    const CONFUSING_PAIRS = [
-      { title: "1. Ricardo Bofill 2개", body: "Walden 7 (1975, 바르셀로나 근교, 미로형 붉은 집합주택) vs Espaces d'Abraxas (1983, 파리 근교 Noisy-le-Grand, 고전 기둥 모양 거대 주거)" },
-      { title: "2. Charles Correa 2개", body: "Gandhi Smarak Sangrahalaya (1963, 아메다바드, 열린 정사각형 파빌리온 박물관) vs Kanchanjunga Apartments (1983, 뭄바이 타워, 2층 높이 테라스)" },
-      { title: "3. São Paulo 2개", body: "MASP (1968, Lina Bo Bardi, 빨간 기둥에 매단 미술관) vs FAU-USP (1972 slide, Artigas, 거대 콘크리트 지붕 아래 열린 건축학교)" },
-      { title: "4. 일본 메타볼리즘 3인방", body: "원통 코어 = Kenzo Tange (Yamanashi, 1967) · 캡슐 = Kisho Kurokawa (Nakagin, 1972) · 들어 올린 집 = Kiyonori Kikutake (Sky House, 1958)" },
-      { title: "5. 국회 의사당 2개", body: "Koweït = Jørn Utzon (1972 slide, 텐트·수크 같은 큰 지붕) vs Bangladesh = Louis Kahn (1982, 원·삼각형으로 뚫린 벽, 물 위)" },
-      { title: "6. 영국 집합주택 2개", body: "하늘 길(streets in the sky) = Alison & Peter Smithson (Robin Hood Gardens, 1972) vs 주민 참여 + 긴 벽 = Ralph Erskine (Byker Wall, 1982)" }
-    ];
+    let progress = SRS.loadAllProgress();
+    let customDecks = SRS.loadCustomDecks();
+    let activeDeckId = SRS.getActiveDeckId(BUILTIN_DECKS[0].id);
 
-    const CHAPTERS = ["ALL", ...new Set(PROJECTS.map(p => p.chapter))];
-    const STORAGE_KEY = "atelier42_histoire_30_v1";
+    function getAllDecks() {
+      return [...BUILTIN_DECKS, ...customDecks];
+    }
 
-    let progress = loadProgress();
+    function getActiveDeck() {
+      const all = getAllDecks();
+      return all.find(d => d.id === activeDeckId) || all[0];
+    }
+
+    if (!getAllDecks().some(d => d.id === activeDeckId)) {
+      activeDeckId = BUILTIN_DECKS[0].id;
+      SRS.setActiveDeckId(activeDeckId);
+    }
+
     let state = {
       mode: "flashcard",
       chapter: "ALL",
       onlyWeak: false,
+      onlyDue: false,
       quizType: "random",
       pool: [],
       index: 0,
       answered: false,
       selectedOption: null,
+      idkUsed: false,
       photoRevealed: false,
       flashFlipped: false,
       flashHint: false,
-      flashFront: "photo", // 'photo' | 'name'
+      flashFront: "front", // 'front' | 'back' | 'photo'
       examSet: [],
       examRevealed: {},
-      searchQuery: ""
+      searchQuery: "",
+      modalTab: "create"
     };
 
-    function loadProgress() {
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
     }
-    function saveProgress() {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch {}
+
+    function getCardRec(cardId) {
+      return SRS.getCardRecord(progress, getActiveDeck().id, cardId);
     }
-    function getStatus(id) { return progress[id] || "new"; }
-    function setStatus(id, st) {
-      progress[id] = st;
-      saveProgress();
+
+    function getStatus(cardId) {
+      return getCardRec(cardId).status;
+    }
+
+    function setSimpleStatus(cardId, st) {
+      const quality = st === "mastered" ? 3 : 1;
+      reviewCardWithQuality(cardId, quality);
+    }
+
+    function reviewCardWithQuality(cardId, quality) {
+      const deckId = getActiveDeck().id;
+      const key = SRS.cardKey(deckId, cardId);
+      const cur = SRS.getCardRecord(progress, deckId, cardId);
+      progress[key] = SRS.computeNextReview(cur, quality);
+      SRS.saveAllProgress(progress);
       renderStats();
     }
 
@@ -795,10 +916,19 @@
       return a;
     }
 
+    function getDeckChapters(deck) {
+      return ["ALL", ...new Set(deck.cards.map(c => c.chapter || "일반"))];
+    }
+
     function getFiltered() {
-      return PROJECTS.filter(p => {
-        if (state.chapter !== "ALL" && p.chapter !== state.chapter) return false;
-        if (state.onlyWeak && getStatus(p.id) === "mastered") return false;
+      const deck = getActiveDeck();
+      const now = Date.now();
+      return deck.cards.filter(c => {
+        const ch = c.chapter || "일반";
+        if (state.chapter !== "ALL" && ch !== state.chapter) return false;
+        const rec = getCardRec(c.id);
+        if (state.onlyWeak && rec.status === "mastered") return false;
+        if (state.onlyDue && !SRS.isDue(rec, now)) return false;
         return true;
       });
     }
@@ -808,12 +938,13 @@
       state.index = 0;
       state.answered = false;
       state.selectedOption = null;
+      state.idkUsed = false;
       state.photoRevealed = false;
       state.flashFlipped = false;
     }
 
-    function googleImgUrl(p) {
-      return `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(p.name + " " + p.architect)}`;
+    function googleImgUrl(c) {
+      return `https://www.google.com/search?tbm=isch&q=${encodeURIComponent((c.front || "") + " " + (c.back || ""))}`;
     }
 
     function openZoom(src) {
@@ -821,33 +952,69 @@
       document.getElementById("lightbox").classList.add("open");
     }
 
-    function renderMediaPane(p, hideTitle = false) {
-      if (p.img) {
+    function renderMediaPane(c, hideTitle = false) {
+      if (c.img) {
         return `
           <div class="media-pane">
-            <img src="${p.img}" alt="${hideTitle ? "Architecture project" : p.name}" onclick="openZoom('${p.img}')">
+            <img src="${escapeHtml(c.img)}" alt="${hideTitle ? "Quiz image" : escapeHtml(c.front)}" onclick="openZoom('${escapeHtml(c.img)}')">
           </div>
         `;
       }
       return `
         <div class="media-pane">
           <div class="media-fallback">
-            <div>대표 사진 없음 (${p.name})</div>
-            <a href="${googleImgUrl(p)}" target="_blank" rel="noopener">구글 이미지 보기 ↗</a>
+            <div>이미지 없음 (${escapeHtml(c.front)})</div>
+            <a href="${googleImgUrl(c)}" target="_blank" rel="noopener">구글 이미지 보기 ↗</a>
           </div>
         </div>
       `;
     }
 
     function renderStats() {
-      const mastered = PROJECTS.filter(p => getStatus(p.id) === "mastered").length;
-      const review = PROJECTS.filter(p => getStatus(p.id) === "review").length;
-      document.getElementById("statMastered").textContent = `암기 ${mastered}/30`;
+      const deck = getActiveDeck();
+      const total = deck.cards.length;
+      const mastered = deck.cards.filter(c => getStatus(c.id) === "mastered").length;
+      const review = deck.cards.filter(c => getStatus(c.id) === "review").length;
+      document.getElementById("statMastered").textContent = `암기 ${mastered}/${total}`;
       document.getElementById("statReview").textContent = `복습 ${review}`;
-      document.getElementById("progressFill").style.width = `${Math.round((mastered / 30) * 100)}%`;
+      const pct = total > 0 ? Math.round((mastered / total) * 100) : 0;
+      document.getElementById("progressFill").style.width = `${pct}%`;
+    }
+
+    function renderDeckSelect() {
+      const sel = document.getElementById("deckSelect");
+      const all = getAllDecks();
+      sel.innerHTML = all.map(d => `<option value="${escapeHtml(d.id)}" ${d.id === activeDeckId ? "selected" : ""}>${escapeHtml(d.title)} (${d.cards.length})</option>`).join("");
+    }
+
+    function renderModeTabs() {
+      const deck = getActiveDeck();
+      const tabs = [
+        { id: "flashcard", label: "플래시카드" },
+        { id: "quiz", label: "4지선다" }
+      ];
+      if (deck.hasPhotoMode) tabs.push({ id: "photo", label: "사진 퀴즈" });
+      if (deck.hasExamMode) tabs.push({ id: "exam", label: "실전 3문제" });
+      if (deck.pairs && deck.pairs.length) tabs.push({ id: "pairs", label: `헷갈리는 ${deck.pairs.length}쌍` });
+      tabs.push({ id: "list", label: `전체 ${deck.cards.length}개` });
+
+      if (!tabs.some(t => t.id === state.mode)) {
+        state.mode = "flashcard";
+      }
+
+      const container = document.getElementById("modeTabs");
+      container.innerHTML = tabs.map(t => `<button class="pill-btn ${state.mode === t.id ? "active" : ""}" data-mode="${t.id}">${t.label}</button>`).join("");
+      container.querySelectorAll(".pill-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.mode = btn.dataset.mode;
+          rebuildPool();
+          render();
+        });
+      });
     }
 
     function renderFilters() {
+      const deck = getActiveDeck();
       const bar = document.getElementById("filtersBar");
       const lockViewport = ["photo", "flashcard", "quiz"].includes(state.mode);
       document.body.classList.toggle("viewport-fit", lockViewport);
@@ -857,33 +1024,57 @@
         return;
       }
 
-      let html = `
-        <select id="chapterSelect" aria-label="단원 필터">
-          ${CHAPTERS.map(c => `<option value="${c}" ${state.chapter === c ? "selected" : ""}>${c === "ALL" ? "전체 (30)" : c}</option>`).join("")}
-        </select>
-        <label class="check-pill">
-          <input type="checkbox" id="weakCheck" ${state.onlyWeak ? "checked" : ""}>
-          미암기만
-        </label>
-      `;
+      const chapters = getDeckChapters(deck);
+      const dueCount = deck.cards.filter(c => SRS.isDue(getCardRec(c.id))).length;
 
-      if (state.mode === "quiz") {
+      let html = "";
+      if (chapters.length > 2) {
         html += `
-          <select id="quizTypeSelect" aria-label="출제 유형">
-            <option value="random" ${state.quizType === "random" ? "selected" : ""}>랜덤 (건축가·건물명·연도)</option>
-            <option value="architect" ${state.quizType === "architect" ? "selected" : ""}>건축가</option>
-            <option value="name" ${state.quizType === "name" ? "selected" : ""}>건물명</option>
-            <option value="year" ${state.quizType === "year" ? "selected" : ""}>연도</option>
-            <option value="location" ${state.quizType === "location" ? "selected" : ""}>장소</option>
+          <select id="chapterSelect" aria-label="단원 필터">
+            ${chapters.map(c => `<option value="${escapeHtml(c)}" ${state.chapter === c ? "selected" : ""}>${c === "ALL" ? `전체 (${deck.cards.length})` : escapeHtml(c)}</option>`).join("")}
           </select>
         `;
       }
 
+      html += `
+        <label class="check-pill">
+          <input type="checkbox" id="weakCheck" ${state.onlyWeak ? "checked" : ""}>
+          미암기만
+        </label>
+        <label class="check-pill" title="Anki 간격 반복 기준 오늘 복습할 카드만">
+          <input type="checkbox" id="dueCheck" ${state.onlyDue ? "checked" : ""}>
+          오늘 복습 (${dueCount})
+        </label>
+      `;
+
+      if (state.mode === "quiz") {
+        if (deck.kind === "architecture") {
+          html += `
+            <select id="quizTypeSelect" aria-label="출제 유형">
+              <option value="random" ${state.quizType === "random" ? "selected" : ""}>랜덤 (건축가·건물명·연도)</option>
+              <option value="architect" ${state.quizType === "architect" ? "selected" : ""}>건축가</option>
+              <option value="name" ${state.quizType === "name" ? "selected" : ""}>건물명</option>
+              <option value="year" ${state.quizType === "year" ? "selected" : ""}>연도</option>
+              <option value="location" ${state.quizType === "location" ? "selected" : ""}>장소</option>
+            </select>
+          `;
+        } else {
+          html += `
+            <select id="quizTypeSelect" aria-label="출제 유형">
+              <option value="front2back" ${state.quizType === "front2back" ? "selected" : ""}>앞면 → 뒷면 맞히기</option>
+              <option value="back2front" ${state.quizType === "back2front" ? "selected" : ""}>뒷면 → 앞면 맞히기</option>
+            </select>
+          `;
+        }
+      }
+
       if (state.mode === "flashcard") {
+        const hasImages = deck.cards.some(c => !!c.img);
         html += `
           <select id="flashFrontSelect" aria-label="앞면 표시">
-            <option value="photo" ${state.flashFront === "photo" ? "selected" : ""}>앞면: 사진</option>
-            <option value="name" ${state.flashFront === "name" ? "selected" : ""}>앞면: 건물명</option>
+            ${hasImages ? `<option value="photo" ${state.flashFront === "photo" ? "selected" : ""}>앞면: 사진</option>` : ""}
+            <option value="front" ${state.flashFront === "front" ? "selected" : ""}>앞면: ${deck.kind === "architecture" ? "건물명" : "질문(앞면)"}</option>
+            <option value="back" ${state.flashFront === "back" ? "selected" : ""}>앞면: ${deck.kind === "architecture" ? "건축가" : "정답(뒷면)"}</option>
           </select>
         `;
       }
@@ -894,8 +1085,8 @@
         html += `<button class="btn primary" id="newExamBtn">새로 3개 뽑기</button>`;
       } else if (state.mode === "list") {
         html += `
-          <input type="text" id="searchInput" placeholder="검색..." value="${state.searchQuery}">
-          <button class="btn" id="resetBtn">초기화</button>
+          <input type="text" id="searchInput" placeholder="검색..." value="${escapeHtml(state.searchQuery)}">
+          <button class="btn" id="resetBtn">기록 초기화</button>
         `;
       }
 
@@ -911,6 +1102,11 @@
         rebuildPool();
         renderMain();
       });
+      document.getElementById("dueCheck")?.addEventListener("change", e => {
+        state.onlyDue = e.target.checked;
+        rebuildPool();
+        renderMain();
+      });
       document.getElementById("flashFrontSelect")?.addEventListener("change", e => {
         state.flashFront = e.target.value;
         state.flashFlipped = false;
@@ -920,6 +1116,7 @@
         state.quizType = e.target.value;
         state.answered = false;
         state.selectedOption = null;
+        state.idkUsed = false;
         renderMain();
       });
       document.getElementById("shuffleBtn")?.addEventListener("click", () => {
@@ -928,7 +1125,7 @@
       });
       document.getElementById("newExamBtn")?.addEventListener("click", () => {
         const src = getFiltered();
-        state.examSet = shuffle(src.length >= 3 ? src : PROJECTS).slice(0, 3);
+        state.examSet = shuffle(src.length >= 3 ? src : deck.cards).slice(0, 3);
         state.examRevealed = {};
         renderMain();
       });
@@ -937,25 +1134,61 @@
         renderMain();
       });
       document.getElementById("resetBtn")?.addEventListener("click", () => {
-        if (confirm("암기 상태를 초기화할까요?")) {
-          progress = {};
-          saveProgress();
+        if (confirm(`"${deck.title}" 덱의 암기 기록을 초기화할까요?`)) {
+          deck.cards.forEach(c => {
+            delete progress[SRS.cardKey(deck.id, c.id)];
+          });
+          SRS.saveAllProgress(progress);
           render();
         }
       });
     }
 
-    function renderAnswerBlock(p) {
+    function renderAnswerBlock(c) {
+      const deck = getActiveDeck();
+      if (deck.kind === "architecture") {
+        return `
+          <div class="answer-box">
+            <div class="meta-grid">
+              <div class="meta-item"><div class="meta-label">Projet</div><div class="meta-val">${escapeHtml(c.name)}</div></div>
+              <div class="meta-item"><div class="meta-label">Architecte</div><div class="meta-val">${escapeHtml(c.architect)}</div></div>
+              <div class="meta-item"><div class="meta-label">Lieu</div><div class="meta-val">${escapeHtml(c.location)}</div></div>
+              <div class="meta-item"><div class="meta-label">Date (Slide)</div><div class="meta-val">${escapeHtml(c.year)}</div></div>
+            </div>
+            ${c.desc ? `<div class="desc-fr">${escapeHtml(c.desc)}</div>` : ""}
+            ${c.koTip ? `<div class="ko-tip">${escapeHtml(c.koTip)}</div>` : ""}
+          </div>
+        `;
+      }
       return `
         <div class="answer-box">
           <div class="meta-grid">
-            <div class="meta-item"><div class="meta-label">Projet</div><div class="meta-val">${p.name}</div></div>
-            <div class="meta-item"><div class="meta-label">Architecte</div><div class="meta-val">${p.architect}</div></div>
-            <div class="meta-item"><div class="meta-label">Lieu</div><div class="meta-val">${p.location}</div></div>
-            <div class="meta-item"><div class="meta-label">Date (Slide)</div><div class="meta-val">${p.year}</div></div>
+            <div class="meta-item"><div class="meta-label">앞면</div><div class="meta-val">${escapeHtml(c.front)}</div></div>
+            <div class="meta-item"><div class="meta-label">뒷면 (정답)</div><div class="meta-val">${escapeHtml(c.back)}</div></div>
           </div>
-          <div class="desc-fr">${p.desc}</div>
-          ${p.koTip ? `<div class="ko-tip">${p.koTip}</div>` : ""}
+          ${c.desc && c.desc !== c.back ? `<div class="desc-fr">${escapeHtml(c.desc)}</div>` : ""}
+          ${c.koTip ? `<div class="ko-tip">${escapeHtml(c.koTip)}</div>` : ""}
+        </div>
+      `;
+    }
+
+    function renderSrsButtons(cardId, prefix) {
+      const rec = getCardRec(cardId);
+      const preview = (q) => SRS.formatInterval(SRS.computeNextReview(rec, q).interval);
+      return `
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn srs-btn ${rec.status === "review" && rec.interval === 0 ? "bad" : ""}" id="${prefix}Q1" data-srs="1">
+            <span>다시 (1)</span><small>${preview(1)}</small>
+          </button>
+          <button class="btn srs-btn warn" id="${prefix}Q2" data-srs="2">
+            <span>어려움 (2)</span><small>${preview(2)}</small>
+          </button>
+          <button class="btn srs-btn ${rec.status === "mastered" ? "ok" : ""}" id="${prefix}Q3" data-srs="3">
+            <span>알맞음 (3)</span><small>${preview(3)}</small>
+          </button>
+          <button class="btn srs-btn" id="${prefix}Q4" data-srs="4">
+            <span>쉬움 (4)</span><small>${preview(4)}</small>
+          </button>
         </div>
       `;
     }
@@ -963,19 +1196,19 @@
     function renderPhotoQuiz(main) {
       if (state.pool.length === 0) rebuildPool();
       if (state.pool.length === 0) {
-        main.innerHTML = `<div class="split-card no-media"><p>조건에 맞는 프로젝트가 없습니다.</p></div>`;
+        main.innerHTML = `<div class="split-card no-media"><p>조건에 맞는 카드가 없습니다.</p></div>`;
         return;
       }
       const idx = state.index % state.pool.length;
-      const p = state.pool[idx];
+      const c = state.pool[idx];
 
       main.innerHTML = `
         <div class="split-card">
-          ${renderMediaPane(p, !state.photoRevealed)}
+          ${renderMediaPane(c, !state.photoRevealed)}
           <div class="content-pane">
             <div class="content-scroll">
               <div class="card-top">
-                <span class="chapter-badge">${state.photoRevealed ? p.chapter : "사진 보고 맞히기"}</span>
+                <span class="chapter-badge">${state.photoRevealed ? escapeHtml(c.chapter) : "사진 보고 맞히기"}</span>
                 <span class="counter">${idx + 1} / ${state.pool.length}</span>
               </div>
 
@@ -987,21 +1220,18 @@
                   <div class="field-row"><label>Date (연도)</label><input type="text" placeholder="예: 1967"></div>
                 </div>
                 <button class="btn primary" id="revealPhotoBtn" style="width:100%;">정답 확인 (Space)</button>
-              ` : renderAnswerBlock(p)}
+              ` : renderAnswerBlock(c)}
             </div>
 
             <div>
               <div class="card-actions">
-                <div style="display:flex;gap:6px;">
-                  <button class="btn ${getStatus(p.id) === "mastered" ? "ok" : ""}" id="pOk">암기 (1)</button>
-                  <button class="btn ${getStatus(p.id) === "review" ? "bad" : ""}" id="pBad">복습 (2)</button>
-                </div>
+                ${renderSrsButtons(c.id, "p")}
                 <div style="display:flex;gap:6px;">
                   <button class="btn" id="pPrev">←</button>
                   <button class="btn primary" id="pNext">다음 →</button>
                 </div>
               </div>
-              <div class="kbd-hint">Space 정답 · 1 암기 · 2 복습 · ←/→ 이동</div>
+              <div class="kbd-hint">Space 정답 · 1~4 Anki 복습 간격 선택 · ←/→ 이동</div>
             </div>
           </div>
         </div>
@@ -1011,17 +1241,13 @@
         state.photoRevealed = true;
         renderMain();
       });
-      document.getElementById("pOk")?.addEventListener("click", () => {
-        setStatus(p.id, "mastered");
-        state.index = (state.index + 1) % state.pool.length;
-        state.photoRevealed = false;
-        renderMain();
-      });
-      document.getElementById("pBad")?.addEventListener("click", () => {
-        setStatus(p.id, "review");
-        state.index = (state.index + 1) % state.pool.length;
-        state.photoRevealed = false;
-        renderMain();
+      [1, 2, 3, 4].forEach(q => {
+        document.getElementById(`pQ${q}`)?.addEventListener("click", () => {
+          reviewCardWithQuality(c.id, q);
+          state.index = (state.index + 1) % state.pool.length;
+          state.photoRevealed = false;
+          renderMain();
+        });
       });
       document.getElementById("pPrev")?.addEventListener("click", () => {
         state.index = (state.index - 1 + state.pool.length) % state.pool.length;
@@ -1036,50 +1262,76 @@
     }
 
     function renderFlashcard(main) {
+      const deck = getActiveDeck();
       if (state.pool.length === 0) rebuildPool();
       if (state.pool.length === 0) {
-        main.innerHTML = `<div class="split-card no-media"><p>조건에 맞는 프로젝트가 없습니다.</p></div>`;
+        main.innerHTML = `<div class="split-card no-media"><p>조건에 맞는 카드가 없습니다. 필터를 해제해 보세요.</p></div>`;
         return;
       }
       const idx = state.index % state.pool.length;
-      const p = state.pool[idx];
+      const c = state.pool[idx];
+
+      // Determine front mode fallback if deck has no images
+      let frontMode = state.flashFront;
+      if (frontMode === "photo" && !c.img) frontMode = "front";
 
       let stageHtml = "";
       if (!state.flashFlipped) {
-        if (state.flashFront === "photo") {
+        if (frontMode === "photo") {
           stageHtml = `
             <div class="quizlet-front-photo">
-              <img src="${p.img}" alt="Architecture project">
-              <span class="quizlet-tap-hint">클릭 또는 Space → 연도 · 건축가 · 건물이름 보기</span>
+              <img src="${escapeHtml(c.img)}" alt="Flashcard image">
+              <span class="quizlet-tap-hint">클릭 또는 Space → 정답 보기</span>
+            </div>
+          `;
+        } else if (frontMode === "back") {
+          stageHtml = `
+            <div style="padding:32px;text-align:center;">
+              <h2 class="project-title" style="font-size:clamp(24px,3.2vw,34px);margin-bottom:8px;">${escapeHtml(c.back)}</h2>
+              <p class="sub-hint" style="margin:0;">클릭 또는 Space → 앞면 · 상세 보기</p>
             </div>
           `;
         } else {
           stageHtml = `
             <div style="padding:32px;text-align:center;">
-              <h2 class="project-title" style="font-size:clamp(24px,3.2vw,34px);margin-bottom:8px;">${p.name}</h2>
-              <p class="sub-hint" style="margin:0;">클릭 또는 Space → 사진 · 건축가 · 연도 · 설명 보기</p>
+              <h2 class="project-title" style="font-size:clamp(24px,3.2vw,34px);margin-bottom:8px;">${escapeHtml(c.front)}</h2>
+              <p class="sub-hint" style="margin:0;">클릭 또는 Space → 정답 보기</p>
             </div>
           `;
         }
       } else {
-        stageHtml = `
-          <div class="quizlet-back">
-            <div class="quizlet-back-head">
-              <div class="quizlet-back-year">${p.year} · ${p.location}</div>
-              <h2 class="quizlet-back-name">${p.name}</h2>
-              <div class="quizlet-back-arch">${p.architect}</div>
+        if (deck.kind === "architecture") {
+          stageHtml = `
+            <div class="quizlet-back">
+              <div class="quizlet-back-head">
+                <div class="quizlet-back-year">${escapeHtml(c.year)} · ${escapeHtml(c.location)}</div>
+                <h2 class="quizlet-back-name">${escapeHtml(c.name)}</h2>
+                <div class="quizlet-back-arch">${escapeHtml(c.architect)}</div>
+              </div>
+              <div class="desc-fr">${escapeHtml(c.desc)}</div>
+              ${c.koTip ? `<div class="ko-tip">${escapeHtml(c.koTip)}</div>` : ""}
+              <div style="font-size:12px;color:var(--muted);">다시 클릭하면 앞면으로 돌아갑니다</div>
             </div>
-            <div class="desc-fr">${p.desc}</div>
-            ${p.koTip ? `<div class="ko-tip">${p.koTip}</div>` : ""}
-            <div style="font-size:12px;color:var(--muted);">다시 클릭하면 앞면으로 돌아갑니다</div>
-          </div>
-        `;
+          `;
+        } else {
+          stageHtml = `
+            <div class="quizlet-back">
+              <div class="quizlet-back-head">
+                <div class="quizlet-back-year">${escapeHtml(c.front)}</div>
+                <h2 class="quizlet-back-name">${escapeHtml(c.back)}</h2>
+              </div>
+              ${c.desc && c.desc !== c.back ? `<div class="desc-fr">${escapeHtml(c.desc)}</div>` : ""}
+              ${c.koTip ? `<div class="ko-tip">${escapeHtml(c.koTip)}</div>` : ""}
+              <div style="font-size:12px;color:var(--muted);">다시 클릭하면 앞면으로 돌아갑니다</div>
+            </div>
+          `;
+        }
       }
 
       main.innerHTML = `
         <div class="quizlet-card">
           <div class="card-top">
-            <span class="chapter-badge">${state.flashFlipped || state.flashHint ? p.chapter : "Quizlet 플래시카드"}</span>
+            <span class="chapter-badge">${state.flashFlipped || state.flashHint ? escapeHtml(c.chapter || "일반") : "Quizlet 플래시카드"}</span>
             <div style="display:flex;align-items:center;gap:8px;">
               ${!state.flashFlipped ? `<button class="btn" id="hintBtn" style="min-height:28px;padding:3px 10px;font-size:12px;">${state.flashHint ? "단원 숨김" : "단원 힌트"}</button>` : ""}
               <span class="counter">${idx + 1} / ${state.pool.length}</span>
@@ -1092,80 +1344,110 @@
 
           <div>
             <div class="card-actions">
-              <div style="display:flex;gap:6px;">
-                <button class="btn ${getStatus(p.id) === "mastered" ? "ok" : ""}" id="fcOk">암기 (1)</button>
-                <button class="btn ${getStatus(p.id) === "review" ? "bad" : ""}" id="fcBad">복습 (2)</button>
-              </div>
+              ${renderSrsButtons(c.id, "fc")}
               <div style="display:flex;gap:6px;">
                 <button class="btn" id="fcPrev">←</button>
                 <button class="btn primary" id="fcNext">다음 →</button>
               </div>
             </div>
-            <div class="kbd-hint">카드 클릭 또는 Space 뒤집기 · 1 암기 · 2 복습 · ←/→ 이동</div>
+            <div class="kbd-hint">Space 뒤집기 · 1 다시 · 2 어려움 · 3 알맞음 · 4 쉬움 · ←/→ 이동</div>
           </div>
         </div>
       `;
 
       document.getElementById("quizletStage")?.addEventListener("click", () => { state.flashFlipped = !state.flashFlipped; renderMain(); });
       document.getElementById("hintBtn")?.addEventListener("click", e => { e.stopPropagation(); state.flashHint = !state.flashHint; renderMain(); });
-      document.getElementById("fcOk")?.addEventListener("click", () => { setStatus(p.id, "mastered"); state.index = (state.index + 1) % state.pool.length; state.flashFlipped = false; renderMain(); });
-      document.getElementById("fcBad")?.addEventListener("click", () => { setStatus(p.id, "review"); state.index = (state.index + 1) % state.pool.length; state.flashFlipped = false; renderMain(); });
+      [1, 2, 3, 4].forEach(q => {
+        document.getElementById(`fcQ${q}`)?.addEventListener("click", () => {
+          reviewCardWithQuality(c.id, q);
+          state.index = (state.index + 1) % state.pool.length;
+          state.flashFlipped = false;
+          renderMain();
+        });
+      });
       document.getElementById("fcPrev")?.addEventListener("click", () => { state.index = (state.index - 1 + state.pool.length) % state.pool.length; state.flashFlipped = false; renderMain(); });
       document.getElementById("fcNext")?.addEventListener("click", () => { state.index = (state.index + 1) % state.pool.length; state.flashFlipped = false; renderMain(); });
     }
 
     let cachedKey = "", cachedQ = null;
-    function buildQuestion(p, type) {
-      const resolvedType = type === "random"
-        ? ["architect", "name", "year"][Math.floor(Math.random() * 3)]
-        : type;
-      const others = shuffle(PROJECTS.filter(x => x.id !== p.id));
-      let title = "", sub = "", correct = "", opts = [];
-      if (resolvedType === "architect") {
-        title = p.name; sub = `${p.location} · 건축가는?`; correct = p.architect;
-        const picks = [];
-        for (const o of others) if (o.architect !== correct && !picks.includes(o.architect)) { picks.push(o.architect); if (picks.length === 3) break; }
-        opts = shuffle([correct, ...picks]);
-      } else if (resolvedType === "name") {
-        title = `${p.architect} (${p.year})`; sub = p.desc; correct = p.name;
-        opts = shuffle([correct, ...others.slice(0, 3).map(o => o.name)]);
-      } else if (resolvedType === "year") {
-        title = p.name; sub = `${p.architect} · 슬라이드 기준 연도는?`; correct = p.year;
-        const picks = [];
-        for (const o of others) if (o.year !== correct && !picks.includes(o.year)) { picks.push(o.year); if (picks.length === 3) break; }
-        opts = shuffle([correct, ...picks]);
+    function buildQuestion(c, type) {
+      const deck = getActiveDeck();
+      const others = shuffle(deck.cards.filter(x => x.id !== c.id));
+      let title = "", sub = "", correct = "", opts = [], resolvedType = type;
+
+      if (deck.kind === "architecture") {
+        resolvedType = type === "random"
+          ? ["architect", "name", "year"][Math.floor(Math.random() * 3)]
+          : type;
+        if (resolvedType === "architect") {
+          title = c.name; sub = `${c.location} · 건축가는?`; correct = c.architect;
+          const picks = [];
+          for (const o of others) if (o.architect !== correct && !picks.includes(o.architect)) { picks.push(o.architect); if (picks.length === 3) break; }
+          opts = shuffle([correct, ...picks]);
+        } else if (resolvedType === "name") {
+          title = `${c.architect} (${c.year})`; sub = c.desc; correct = c.name;
+          opts = shuffle([correct, ...others.slice(0, 3).map(o => o.name)]);
+        } else if (resolvedType === "year") {
+          title = c.name; sub = `${c.architect} · 슬라이드 기준 연도는?`; correct = c.year;
+          const picks = [];
+          for (const o of others) if (o.year !== correct && !picks.includes(o.year)) { picks.push(o.year); if (picks.length === 3) break; }
+          opts = shuffle([correct, ...picks]);
+        } else {
+          title = c.name; sub = `${c.architect} · 장소는?`; correct = c.location;
+          const picks = [];
+          for (const o of others) if (o.location !== correct && !picks.includes(o.location)) { picks.push(o.location); if (picks.length === 3) break; }
+          opts = shuffle([correct, ...picks]);
+        }
       } else {
-        title = p.name; sub = `${p.architect} · 장소는?`; correct = p.location;
-        const picks = [];
-        for (const o of others) if (o.location !== correct && !picks.includes(o.location)) { picks.push(o.location); if (picks.length === 3) break; }
-        opts = shuffle([correct, ...picks]);
+        if (type === "back2front") {
+          title = c.back;
+          sub = "해당하는 앞면(질문/단어)은?";
+          correct = c.front;
+          const picks = [];
+          for (const o of others) if (o.front !== correct && !picks.includes(o.front)) { picks.push(o.front); if (picks.length === 3) break; }
+          opts = shuffle([correct, ...picks]);
+        } else {
+          title = c.front;
+          sub = "알맞은 뜻(정답)을 고르세요";
+          correct = c.back;
+          const picks = [];
+          for (const o of others) if (o.back !== correct && !picks.includes(o.back)) { picks.push(o.back); if (picks.length === 3) break; }
+          opts = shuffle([correct, ...picks]);
+        }
       }
       return { title, sub, correct, opts, resolvedType };
     }
 
     function renderQuiz(main) {
+      const deck = getActiveDeck();
       if (state.pool.length === 0) rebuildPool();
       if (state.pool.length === 0) {
-        main.innerHTML = `<div class="split-card no-media"><p>조건에 맞는 프로젝트가 없습니다.</p></div>`;
+        main.innerHTML = `<div class="split-card no-media"><p>조건에 맞는 카드가 없습니다.</p></div>`;
         return;
       }
+      if (deck.cards.length < 2) {
+        main.innerHTML = `<div class="split-card no-media"><p>4지선다 퀴즈를 진행하려면 최소 2장 이상의 카드가 필요합니다.</p></div>`;
+        return;
+      }
+
       const idx = state.index % state.pool.length;
-      const p = state.pool[idx];
-      const key = `${p.id}-${state.quizType}-${idx}`;
-      if (cachedKey !== key) { cachedKey = key; cachedQ = buildQuestion(p, state.quizType); }
+      const c = state.pool[idx];
+      const key = `${deck.id}-${c.id}-${state.quizType}-${idx}`;
+      if (cachedKey !== key) { cachedKey = key; cachedQ = buildQuestion(c, state.quizType); }
       const q = cachedQ;
+      const hasMedia = !!c.img;
 
       main.innerHTML = `
-        <div class="split-card">
-          ${renderMediaPane(p, q.resolvedType === "name" && !state.answered)}
+        <div class="split-card ${hasMedia ? "" : "no-media"}">
+          ${hasMedia ? renderMediaPane(c, q.resolvedType === "name" && !state.answered) : ""}
           <div class="content-pane">
             <div class="content-scroll">
               <div class="card-top">
-                <span class="chapter-badge">${p.chapter}</span>
+                <span class="chapter-badge">${escapeHtml(c.chapter || "일반")}</span>
                 <span class="counter">${idx + 1} / ${state.pool.length}</span>
               </div>
-              <h2 class="project-title">${q.title}</h2>
-              <p class="sub-hint">${q.sub}</p>
+              <h2 class="project-title">${escapeHtml(q.title)}</h2>
+              <p class="sub-hint">${escapeHtml(q.sub)}</p>
               <div class="options-grid">
                 ${q.opts.map((opt, i) => {
                   let cls = "option-btn";
@@ -1173,23 +1455,26 @@
                     if (opt === q.correct) cls += " correct";
                     else if (opt === state.selectedOption) cls += " wrong";
                   }
-                  return `<button class="${cls}" data-opt="${i}" ${state.answered ? "disabled" : ""}><span class="option-key">${i + 1}</span><span>${opt}</span></button>`;
+                  return `<button class="${cls}" data-opt="${i}" ${state.answered ? "disabled" : ""}><span class="option-key">${i + 1}</span><span>${escapeHtml(opt)}</span></button>`;
                 }).join("")}
+                ${!state.answered ? `
+                  <button class="option-btn idk-btn" id="qIdkBtn">모르겠음 · 정답 바로 보기 (Space / 0)</button>
+                ` : ""}
               </div>
-              ${state.answered ? `<div style="margin-top:10px;">${renderAnswerBlock(p)}</div>` : ""}
+              ${state.answered ? `<div style="margin-top:10px;">${renderAnswerBlock(c)}</div>` : ""}
             </div>
             <div>
               <div class="card-actions">
                 <div style="display:flex;gap:6px;">
-                  <button class="btn ${getStatus(p.id) === "mastered" ? "ok" : ""}" id="qOk">암기</button>
-                  <button class="btn ${getStatus(p.id) === "review" ? "bad" : ""}" id="qBad">복습</button>
+                  <button class="btn ${getStatus(c.id) === "mastered" ? "ok" : ""}" id="qOk">암기</button>
+                  <button class="btn ${getStatus(c.id) === "review" ? "bad" : ""}" id="qBad">복습</button>
                 </div>
                 <div style="display:flex;gap:6px;">
                   <button class="btn" id="qPrev">←</button>
                   <button class="btn primary" id="qNext">다음 →</button>
                 </div>
               </div>
-              <div class="kbd-hint">1–4 보기 선택 · Enter / → 다음</div>
+              <div class="kbd-hint">1–4 보기 선택 · Space/0 모르겠음 · Enter/→ 다음</div>
             </div>
           </div>
         </div>
@@ -1201,96 +1486,144 @@
           const chosen = q.opts[Number(btn.dataset.opt)];
           state.selectedOption = chosen;
           state.answered = true;
-          if (chosen === q.correct) { if (getStatus(p.id) === "new") setStatus(p.id, "mastered"); }
-          else setStatus(p.id, "review");
+          state.idkUsed = false;
+          if (chosen === q.correct) {
+            if (getStatus(c.id) === "new") setSimpleStatus(c.id, "mastered");
+          } else {
+            setSimpleStatus(c.id, "review");
+          }
           renderMain();
         });
       });
-      document.getElementById("qOk")?.addEventListener("click", () => { setStatus(p.id, "mastered"); renderMain(); });
-      document.getElementById("qBad")?.addEventListener("click", () => { setStatus(p.id, "review"); renderMain(); });
-      document.getElementById("qPrev")?.addEventListener("click", () => { state.index = (state.index - 1 + state.pool.length) % state.pool.length; state.answered = false; state.selectedOption = null; renderMain(); });
-      document.getElementById("qNext")?.addEventListener("click", () => { state.index = (state.index + 1) % state.pool.length; state.answered = false; state.selectedOption = null; renderMain(); });
+      document.getElementById("qIdkBtn")?.addEventListener("click", () => {
+        if (state.answered) return;
+        state.selectedOption = null;
+        state.idkUsed = true;
+        state.answered = true;
+        setSimpleStatus(c.id, "review");
+        renderMain();
+      });
+      document.getElementById("qOk")?.addEventListener("click", () => { setSimpleStatus(c.id, "mastered"); renderMain(); });
+      document.getElementById("qBad")?.addEventListener("click", () => { setSimpleStatus(c.id, "review"); renderMain(); });
+      document.getElementById("qPrev")?.addEventListener("click", () => {
+        state.index = (state.index - 1 + state.pool.length) % state.pool.length;
+        state.answered = false; state.selectedOption = null; state.idkUsed = false;
+        renderMain();
+      });
+      document.getElementById("qNext")?.addEventListener("click", () => {
+        state.index = (state.index + 1) % state.pool.length;
+        state.answered = false; state.selectedOption = null; state.idkUsed = false;
+        renderMain();
+      });
     }
 
     function renderExam(main) {
+      const deck = getActiveDeck();
       if (state.examSet.length === 0) {
         const src = getFiltered();
-        state.examSet = shuffle(src.length >= 3 ? src : PROJECTS).slice(0, 3);
+        state.examSet = shuffle(src.length >= 3 ? src : deck.cards).slice(0, 3);
       }
       main.innerHTML = `
         <div class="grid-list">
-          ${state.examSet.map((p, idx) => {
-            const rev = !!state.examRevealed[p.id];
+          ${state.examSet.map((c, idx) => {
+            const rev = !!state.examRevealed[c.id];
             return `
               <div class="exam-card">
                 <div class="card-top">
                   <span class="chapter-badge">시험 1번 · 문제 ${idx + 1}/3</span>
-                  <span class="counter">${rev ? p.chapter : ""}</span>
+                  <span class="counter">${rev ? escapeHtml(c.chapter) : ""}</span>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start;">
-                  ${renderMediaPane(p, !rev)}
+                  ${renderMediaPane(c, !rev)}
                   <div>
-                    <h2 class="project-title">${p.name}</h2>
+                    <h2 class="project-title">${escapeHtml(c.name)}</h2>
                     <div class="field-stack">
                       <div class="field-row"><label>Architecte</label><input type="text" placeholder="건축가"></div>
                       <div class="field-row"><label>Lieu</label><input type="text" placeholder="장소"></div>
                       <div class="field-row"><label>Date</label><input type="text" placeholder="연도"></div>
                     </div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                      <button class="btn primary" data-rev="${p.id}">${rev ? "정답 접기" : "정답 확인"}</button>
+                      <button class="btn primary" data-rev="${escapeHtml(c.id)}">${rev ? "정답 접기" : "정답 확인"}</button>
                       ${rev ? `
-                        <button class="btn ${getStatus(p.id) === "mastered" ? "ok" : ""}" data-ex-ok="${p.id}">암기</button>
-                        <button class="btn ${getStatus(p.id) === "review" ? "bad" : ""}" data-ex-bad="${p.id}">복습</button>
+                        <button class="btn ${getStatus(c.id) === "mastered" ? "ok" : ""}" data-ex-ok="${escapeHtml(c.id)}">암기</button>
+                        <button class="btn ${getStatus(c.id) === "review" ? "bad" : ""}" data-ex-bad="${escapeHtml(c.id)}">복습</button>
                       ` : ""}
                     </div>
                   </div>
                 </div>
-                ${rev ? `<div style="margin-top:12px;">${renderAnswerBlock(p)}</div>` : ""}
+                ${rev ? `<div style="margin-top:12px;">${renderAnswerBlock(c)}</div>` : ""}
               </div>
             `;
           }).join("")}
         </div>
       `;
-      main.querySelectorAll("[data-rev]").forEach(b => b.addEventListener("click", () => { const id = Number(b.dataset.rev); state.examRevealed[id] = !state.examRevealed[id]; renderMain(); }));
-      main.querySelectorAll("[data-ex-ok]").forEach(b => b.addEventListener("click", () => { setStatus(Number(b.dataset.exOk), "mastered"); renderMain(); }));
-      main.querySelectorAll("[data-ex-bad]").forEach(b => b.addEventListener("click", () => { setStatus(Number(b.dataset.exBad), "review"); renderMain(); }));
+      main.querySelectorAll("[data-rev]").forEach(b => b.addEventListener("click", () => {
+        const id = b.dataset.rev;
+        state.examRevealed[id] = !state.examRevealed[id];
+        renderMain();
+      }));
+      main.querySelectorAll("[data-ex-ok]").forEach(b => b.addEventListener("click", () => { setSimpleStatus(b.dataset.exOk, "mastered"); renderMain(); }));
+      main.querySelectorAll("[data-ex-bad]").forEach(b => b.addEventListener("click", () => { setSimpleStatus(b.dataset.exBad, "review"); renderMain(); }));
     }
 
     function renderPairs(main) {
-      main.innerHTML = `<div class="pairs-grid">${CONFUSING_PAIRS.map(x => `<div class="pair-card"><h3>${x.title}</h3><p>${x.body}</p></div>`).join("")}</div>`;
+      const deck = getActiveDeck();
+      const pairs = deck.pairs || [];
+      main.innerHTML = `<div class="pairs-grid">${pairs.map(x => `<div class="pair-card"><h3>${escapeHtml(x.title)}</h3><p>${escapeHtml(x.body)}</p></div>`).join("")}</div>`;
     }
 
     function renderList(main) {
+      const deck = getActiveDeck();
       const q = state.searchQuery.trim().toLowerCase();
-      const items = getFiltered().filter(p => !q || (p.name + p.architect + p.location + p.year + p.desc).toLowerCase().includes(q));
+      const items = getFiltered().filter(c => {
+        if (!q) return true;
+        return [c.front, c.back, c.sub, c.desc, c.koTip, c.chapter].join(" ").toLowerCase().includes(q);
+      });
+
+      const showThumb = deck.cards.some(c => !!c.img);
+
       main.innerHTML = `
         <div class="grid-list">
-          ${items.map(p => {
-            const st = getStatus(p.id);
+          ${items.map((c, idx) => {
+            const st = getStatus(c.id);
+            const rec = getCardRec(c.id);
+            const dueText = rec.interval > 0 ? ` · 다음 복습 ${SRS.formatInterval(rec.interval)}` : "";
             return `
-              <div class="list-row">
-                <div class="list-thumb">
-                  ${p.img ? `<img src="${p.img}" alt="${p.name}" loading="lazy" onclick="openZoom('${p.img}')">` : `<a href="${googleImgUrl(p)}" target="_blank" rel="noopener">구글 이미지 ↗</a>`}
-                </div>
+              <div class="list-row ${showThumb ? "" : "no-thumb"}">
+                ${showThumb ? `
+                  <div class="list-thumb">
+                    ${c.img ? `<img src="${escapeHtml(c.img)}" alt="${escapeHtml(c.front)}" loading="lazy" onclick="openZoom('${escapeHtml(c.img)}')">` : `<a href="${googleImgUrl(c)}" target="_blank" rel="noopener">구글 이미지 ↗</a>`}
+                  </div>
+                ` : ""}
                 <div>
                   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <div><span class="chapter-badge" style="margin-right:6px;">${p.chapter}</span><strong>${p.id}. ${p.name}</strong></div>
-                    <select data-st-id="${p.id}" style="min-height:30px;padding:3px 10px;border-radius:980px;border:1px solid var(--line);background:var(--surface);font-size:12px;font-weight:600;">
+                    <div><span class="chapter-badge" style="margin-right:6px;">${escapeHtml(c.chapter || "일반")}</span><strong>${idx + 1}. ${escapeHtml(c.front)}</strong></div>
+                    <select data-st-id="${escapeHtml(c.id)}" style="min-height:30px;padding:3px 10px;border-radius:980px;border:1px solid var(--line);background:var(--surface);font-size:12px;font-weight:600;">
                       <option value="new" ${st === "new" ? "selected" : ""}>미학습</option>
-                      <option value="review" ${st === "review" ? "selected" : ""}>복습</option>
-                      <option value="mastered" ${st === "mastered" ? "selected" : ""}>암기</option>
+                      <option value="review" ${st === "review" ? "selected" : ""}>복습${dueText}</option>
+                      <option value="mastered" ${st === "mastered" ? "selected" : ""}>암기${dueText}</option>
                     </select>
                   </div>
-                  <div style="font-size:13.5px;color:var(--muted);margin:4px 0;"><strong>${p.architect}</strong> · ${p.location} · <strong>${p.year}</strong></div>
-                  <div style="font-size:13.5px;">${p.desc}</div>
-                  ${p.koTip ? `<div style="font-size:12.5px;color:var(--muted);margin-top:4px;">↳ ${p.koTip}</div>` : ""}
+                  <div style="font-size:13.5px;color:var(--muted);margin:4px 0;"><strong>${escapeHtml(c.back)}</strong>${c.sub ? ` · ${escapeHtml(c.sub)}` : ""}</div>
+                  ${c.desc && c.desc !== c.back ? `<div style="font-size:13.5px;">${escapeHtml(c.desc)}</div>` : ""}
+                  ${c.koTip ? `<div style="font-size:12.5px;color:var(--muted);margin-top:4px;">↳ ${escapeHtml(c.koTip)}</div>` : ""}
                 </div>
               </div>
             `;
           }).join("")}
         </div>
       `;
-      main.querySelectorAll("[data-st-id]").forEach(sel => sel.addEventListener("change", e => setStatus(Number(sel.dataset.stId), e.target.value)));
+      main.querySelectorAll("[data-st-id]").forEach(sel => sel.addEventListener("change", e => {
+        const val = e.target.value;
+        const id = sel.dataset.stId;
+        if (val === "new") {
+          delete progress[SRS.cardKey(deck.id, id)];
+          SRS.saveAllProgress(progress);
+          renderStats();
+        } else {
+          setSimpleStatus(id, val);
+        }
+      }));
     }
 
     function renderMain() {
@@ -1304,43 +1637,259 @@
     }
 
     function render() {
+      const deck = getActiveDeck();
+      document.getElementById("brandToolName").textContent = deck.kind === "architecture" ? "Histoire" : "Quiz";
+      renderDeckSelect();
       renderStats();
+      renderModeTabs();
       renderFilters();
       renderMain();
     }
 
-    document.querySelectorAll("#modeTabs .pill-btn").forEach(btn => {
+    /* ===== Deck Manager Modal ===== */
+    function openDeckModal(tab = "create") {
+      state.modalTab = tab;
+      document.getElementById("deckModal").classList.add("open");
+      renderDeckModal();
+    }
+
+    function closeDeckModal() {
+      document.getElementById("deckModal").classList.remove("open");
+    }
+
+    function renderDeckModal() {
+      const deck = getActiveDeck();
+      const tabs = document.getElementById("modalTabs");
+      tabs.querySelectorAll(".pill-btn").forEach(b => {
+        b.classList.toggle("active", b.dataset.mtab === state.modalTab);
+      });
+
+      const body = document.getElementById("modalBody");
+      if (state.modalTab === "create") {
+        body.innerHTML = `
+          <div class="field-stack">
+            <div class="field-row">
+              <label>새 덱 이름</label>
+              <input type="text" id="newDeckTitle" placeholder="예: 프랑스어 건축 용어 / 영단어 100">
+            </div>
+            <div class="field-row">
+              <label>설명 (선택)</label>
+              <input type="text" id="newDeckSub" placeholder="예: 기말고사 대비 핵심 단어장">
+            </div>
+            <div class="field-row">
+              <label>Quizlet 스타일 대량 입력 (한 줄에 카드 1장: 앞면 [Tab 또는 ; 또는 -] 뒷면 | 힌트)</label>
+              <textarea id="bulkCardsInput" rows="7" placeholder="la façade ; 입면, 파사드 | 건물 외관
+le plan ; 평면도
+l'élévation ; 입면도
+la coupe ; 단면도"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span id="bulkPreviewCount" style="font-size:12.5px;color:var(--muted);">0장 인식됨</span>
+            <button class="btn primary" id="createDeckSubmitBtn">덱 생성하고 바로 학습하기</button>
+          </div>
+        `;
+
+        const ta = document.getElementById("bulkCardsInput");
+        const countEl = document.getElementById("bulkPreviewCount");
+        ta.addEventListener("input", () => {
+          const parsed = parseBulkText(ta.value);
+          countEl.textContent = `${parsed.length}장 인식됨`;
+        });
+        document.getElementById("createDeckSubmitBtn").addEventListener("click", () => {
+          const title = document.getElementById("newDeckTitle").value.trim();
+          const subtitle = document.getElementById("newDeckSub").value.trim();
+          const cards = parseBulkText(ta.value);
+          if (!title) { alert("덱 이름을 입력해 주세요."); return; }
+          if (cards.length === 0) { alert("최소 1장 이상의 카드를 입력해 주세요. (예: 앞면 ; 뒷면)"); return; }
+
+          const newDeck = {
+            id: `custom_${Date.now()}`,
+            title,
+            subtitle,
+            kind: "general",
+            builtin: false,
+            cards
+          };
+          customDecks.push(newDeck);
+          SRS.saveCustomDecks(customDecks);
+          activeDeckId = newDeck.id;
+          SRS.setActiveDeckId(activeDeckId);
+          state.chapter = "ALL";
+          state.flashFront = "front";
+          state.quizType = "front2back";
+          rebuildPool();
+          closeDeckModal();
+          render();
+        });
+      } else if (state.modalTab === "addcard") {
+        if (deck.builtin) {
+          body.innerHTML = `<p class="sub-hint">기본 내장 덱("${escapeHtml(deck.title)}")에는 직접 카드를 추가할 수 없습니다. "새 덱 만들기"에서 나만의 덱을 만들어 보세요.</p>`;
+          return;
+        }
+        body.innerHTML = `
+          <p class="sub-hint">현재 덱: <strong>${escapeHtml(deck.title)}</strong> (${deck.cards.length}장)</p>
+          <div class="field-stack">
+            <div class="field-row"><label>단원 / 태그</label><input type="text" id="addCardCh" value="일반"></div>
+            <div class="field-row"><label>앞면 (질문 / 단어)</label><input type="text" id="addCardFront" placeholder="앞면 내용"></div>
+            <div class="field-row"><label>뒷면 (정답 / 뜻)</label><input type="text" id="addCardBack" placeholder="뒷면 내용"></div>
+            <div class="field-row"><label>암기 팁 / 메모 (선택)</label><input type="text" id="addCardTip" placeholder="예: 헷갈리는 포인트"></div>
+          </div>
+          <button class="btn primary" id="addCardSubmitBtn">카드 추가</button>
+        `;
+        document.getElementById("addCardSubmitBtn").addEventListener("click", () => {
+          const front = document.getElementById("addCardFront").value.trim();
+          const back = document.getElementById("addCardBack").value.trim();
+          const tip = document.getElementById("addCardTip").value.trim();
+          const chapter = document.getElementById("addCardCh").value.trim() || "일반";
+          if (!front || !back) { alert("앞면과 뒷면을 모두 입력해 주세요."); return; }
+          deck.cards.push({
+            id: `c_${Date.now()}`,
+            chapter,
+            front,
+            back,
+            sub: "",
+            desc: back,
+            koTip: tip,
+            img: ""
+          });
+          SRS.saveCustomDecks(customDecks);
+          rebuildPool();
+          render();
+          document.getElementById("addCardFront").value = "";
+          document.getElementById("addCardBack").value = "";
+          document.getElementById("addCardTip").value = "";
+          alert("카드가 추가되었습니다!");
+        });
+      } else {
+        body.innerHTML = `
+          <div class="grid-list">
+            ${getAllDecks().map(d => `
+              <div class="deck-item-row">
+                <div>
+                  <strong>${escapeHtml(d.title)}</strong>
+                  <div style="font-size:12px;color:var(--muted);">${d.cards.length}장 · ${d.builtin ? "기본 제공" : "사용자 덱"}</div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn sm" data-export-deck="${escapeHtml(d.id)}">JSON 백업</button>
+                  ${!d.builtin ? `<button class="btn sm bad" data-del-deck="${escapeHtml(d.id)}">삭제</button>` : ""}
+                </div>
+              </div>
+            `).join("")}
+          </div>
+          <div style="border-top:1px solid var(--line);padding-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <label class="btn sm" style="cursor:pointer;">
+              JSON 덱 불러오기
+              <input type="file" id="importDeckFile" accept=".json" style="display:none;">
+            </label>
+            <span style="font-size:12px;color:var(--muted);">내보낸 .json 파일을 불러와 다른 기기와 공유할 수 있습니다.</span>
+          </div>
+        `;
+        body.querySelectorAll("[data-export-deck]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const target = getAllDecks().find(x => x.id === btn.dataset.exportDeck);
+            if (!target) return;
+            const blob = new Blob([JSON.stringify(target, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${target.id}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+        });
+        body.querySelectorAll("[data-del-deck]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            if (!confirm("이 덱을 삭제할까요?")) return;
+            customDecks = customDecks.filter(x => x.id !== btn.dataset.delDeck);
+            SRS.saveCustomDecks(customDecks);
+            if (activeDeckId === btn.dataset.delDeck) {
+              activeDeckId = BUILTIN_DECKS[0].id;
+              SRS.setActiveDeckId(activeDeckId);
+            }
+            rebuildPool();
+            render();
+            renderDeckModal();
+          });
+        });
+        document.getElementById("importDeckFile")?.addEventListener("change", e => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              const imported = JSON.parse(reader.result);
+              if (!imported.title || !Array.isArray(imported.cards)) throw new Error("Invalid deck");
+              imported.id = `custom_${Date.now()}`;
+              imported.builtin = false;
+              customDecks.push(imported);
+              SRS.saveCustomDecks(customDecks);
+              activeDeckId = imported.id;
+              SRS.setActiveDeckId(activeDeckId);
+              rebuildPool();
+              render();
+              renderDeckModal();
+            } catch {
+              alert("올바른 덱 JSON 파일이 아닙니다.");
+            }
+          };
+          reader.readAsText(file);
+        });
+      }
+    }
+
+    document.getElementById("deckSelect").addEventListener("change", e => {
+      activeDeckId = e.target.value;
+      SRS.setActiveDeckId(activeDeckId);
+      state.chapter = "ALL";
+      state.examSet = [];
+      state.flashFront = getActiveDeck().cards.some(c => !!c.img) ? "photo" : "front";
+      state.quizType = getActiveDeck().kind === "architecture" ? "random" : "front2back";
+      rebuildPool();
+      render();
+    });
+
+    document.getElementById("openDeckModalBtn").addEventListener("click", () => openDeckModal("create"));
+    document.getElementById("closeDeckModalBtn").addEventListener("click", closeDeckModal);
+    document.getElementById("deckModal").addEventListener("click", e => {
+      if (e.target.id === "deckModal") closeDeckModal();
+    });
+    document.getElementById("modalTabs").querySelectorAll(".pill-btn").forEach(btn => {
       btn.addEventListener("click", () => {
-        document.querySelectorAll("#modeTabs .pill-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        state.mode = btn.dataset.mode;
-        rebuildPool();
-        render();
+        state.modalTab = btn.dataset.mtab;
+        renderDeckModal();
       });
     });
 
     document.addEventListener("keydown", e => {
-      if (e.key === "Escape") document.getElementById("lightbox").classList.remove("open");
+      if (e.key === "Escape") {
+        document.getElementById("lightbox").classList.remove("open");
+        closeDeckModal();
+      }
+      if (document.getElementById("deckModal").classList.contains("open")) return;
       if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") return;
+
       if (state.mode === "photo") {
         if (e.code === "Space") { e.preventDefault(); document.getElementById("revealPhotoBtn")?.click(); }
-        else if (e.key === "1") document.getElementById("pOk")?.click();
-        else if (e.key === "2") document.getElementById("pBad")?.click();
+        else if (["1", "2", "3", "4"].includes(e.key)) document.getElementById(`pQ${e.key}`)?.click();
         else if (e.key === "ArrowRight") document.getElementById("pNext")?.click();
         else if (e.key === "ArrowLeft") document.getElementById("pPrev")?.click();
       } else if (state.mode === "flashcard") {
         if (e.code === "Space") { e.preventDefault(); document.getElementById("quizletStage")?.click(); }
-        else if (e.key === "1") document.getElementById("fcOk")?.click();
-        else if (e.key === "2") document.getElementById("fcBad")?.click();
+        else if (["1", "2", "3", "4"].includes(e.key)) document.getElementById(`fcQ${e.key}`)?.click();
         else if (e.key === "ArrowRight") document.getElementById("fcNext")?.click();
         else if (e.key === "ArrowLeft") document.getElementById("fcPrev")?.click();
       } else if (state.mode === "quiz") {
         if (["1", "2", "3", "4"].includes(e.key) && !state.answered) document.querySelector(`[data-opt="${Number(e.key) - 1}"]`)?.click();
+        else if ((e.code === "Space" || e.key === "0") && !state.answered) { e.preventDefault(); document.getElementById("qIdkBtn")?.click(); }
         else if (e.key === "Enter" || e.key === "ArrowRight") document.getElementById("qNext")?.click();
         else if (e.key === "ArrowLeft") document.getElementById("qPrev")?.click();
       }
     });
 
+    // Initialize default front mode based on active deck
+    state.flashFront = getActiveDeck().cards.some(c => !!c.img) ? "photo" : "front";
+    state.quizType = getActiveDeck().kind === "architecture" ? "random" : "front2back";
     rebuildPool();
     render();
   </script>
