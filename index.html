@@ -784,9 +784,9 @@
 <body class="viewport-fit">
   <header class="page-header">
     <div class="nav-inner">
-      <a id="brand-home" class="product-name" href="https://atelier-4-2.github.io/site/" aria-label="4·2 홈으로">
-        <span class="brand-mark">4·2</span><span class="brand-divider" aria-hidden="true"></span><span class="brand-tool" id="brandToolName">Quiz</span>
-      </a>
+      <div id="brand-home" class="product-name">
+        <a href="https://atelier-4-2.github.io/site/" class="brand-mark" aria-label="4·2 메인페이지로" style="text-decoration:none;color:inherit;">4·2</a><span class="brand-divider" aria-hidden="true"></span><a href="./" class="brand-tool" id="brandToolName" aria-label="퀴즈 홈으로" style="text-decoration:none;color:inherit;">Quiz</a>
+      </div>
       <div class="nav-right">
         <div class="deck-bar">
           <select class="deck-select" id="deckSelect" aria-label="학습 덱 선택"></select>
@@ -1651,8 +1651,6 @@
     }
 
     function render() {
-      const deck = getActiveDeck();
-      document.getElementById("brandToolName").textContent = deck.kind === "architecture" ? "Histoire" : "Quiz";
       renderDeckSelect();
       renderStats();
       renderModeTabs();
