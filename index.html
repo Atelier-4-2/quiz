@@ -820,7 +820,7 @@
   <div class="modal-backdrop" id="deckModal">
     <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="deckModalTitle">
       <div class="modal-head">
-        <h2 id="deckModalTitle">덱 관리 · Quizlet / Anki 가져오기</h2>
+        <h2 id="deckModalTitle">덱 관리 · 카드 가져오기</h2>
         <button class="btn sm" id="closeDeckModalBtn">닫기</button>
       </div>
       <div class="modal-tabs" id="modalTabs">
@@ -902,7 +902,8 @@
       const deckId = getActiveDeck().id;
       const key = SRS.cardKey(deckId, cardId);
       const cur = SRS.getCardRecord(progress, deckId, cardId);
-      progress[key] = SRS.computeNextReview(cur, quality);
+      const goalDate = SRS.getDeckGoal(deckId);
+      progress[key] = SRS.computeNextReview(cur, quality, Date.now(), goalDate);
       SRS.saveAllProgress(progress);
       renderStats();
     }
@@ -1026,6 +1027,8 @@
 
       const chapters = getDeckChapters(deck);
       const dueCount = deck.cards.filter(c => SRS.isDue(getCardRec(c.id))).length;
+      const goalDate = SRS.getDeckGoal(deck.id);
+      const plan = SRS.getStudyPlan(deck, progress, goalDate);
 
       let html = "";
       if (chapters.length > 2) {
@@ -1041,9 +1044,14 @@
           <input type="checkbox" id="weakCheck" ${state.onlyWeak ? "checked" : ""}>
           미암기만
         </label>
-        <label class="check-pill" title="Anki 간격 반복 기준 오늘 복습할 카드만">
+        <label class="check-pill" title="간격 반복 기준 오늘 복습할 카드만">
           <input type="checkbox" id="dueCheck" ${state.onlyDue ? "checked" : ""}>
           오늘 복습 (${dueCount})
+        </label>
+        <label class="check-pill" title="학습목표일(시험일)을 설정하면 남은 기간에 맞춰 복습 주기와 하루 권장 학습량이 자동 조정됩니다">
+          목표일
+          <input type="date" id="goalDateInput" value="${escapeHtml(goalDate)}" style="border:none;background:transparent;font-size:12px;font-weight:600;padding:0;min-height:auto;cursor:pointer;">
+          ${plan.daysRemaining !== null ? `<span style="color:var(--ink);font-weight:700;">D-${plan.daysRemaining} · 일 ${plan.dailyRecommended}장</span>` : ""}
         </label>
       `;
 
@@ -1106,6 +1114,10 @@
         state.onlyDue = e.target.checked;
         rebuildPool();
         renderMain();
+      });
+      document.getElementById("goalDateInput")?.addEventListener("change", e => {
+        SRS.setDeckGoal(deck.id, e.target.value);
+        render();
       });
       document.getElementById("flashFrontSelect")?.addEventListener("change", e => {
         state.flashFront = e.target.value;
@@ -1173,8 +1185,10 @@
     }
 
     function renderSrsButtons(cardId, prefix) {
+      const deckId = getActiveDeck().id;
+      const goalDate = SRS.getDeckGoal(deckId);
       const rec = getCardRec(cardId);
-      const preview = (q) => SRS.formatInterval(SRS.computeNextReview(rec, q).interval);
+      const preview = (q) => SRS.formatInterval(SRS.computeNextReview(rec, q, Date.now(), goalDate).interval);
       return `
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn srs-btn ${rec.status === "review" && rec.interval === 0 ? "bad" : ""}" id="${prefix}Q1" data-srs="1">
@@ -1331,7 +1345,7 @@
       main.innerHTML = `
         <div class="quizlet-card">
           <div class="card-top">
-            <span class="chapter-badge">${state.flashFlipped || state.flashHint ? escapeHtml(c.chapter || "일반") : "Quizlet 플래시카드"}</span>
+            <span class="chapter-badge">${state.flashFlipped || state.flashHint ? escapeHtml(c.chapter || "일반") : "플래시 카드"}</span>
             <div style="display:flex;align-items:center;gap:8px;">
               ${!state.flashFlipped ? `<button class="btn" id="hintBtn" style="min-height:28px;padding:3px 10px;font-size:12px;">${state.flashHint ? "단원 숨김" : "단원 힌트"}</button>` : ""}
               <span class="counter">${idx + 1} / ${state.pool.length}</span>
@@ -1677,7 +1691,7 @@
               <input type="text" id="newDeckSub" placeholder="예: 기말고사 대비 핵심 단어장">
             </div>
             <div class="field-row">
-              <label>Quizlet 스타일 대량 입력 (한 줄에 카드 1장: 앞면 [Tab 또는 ; 또는 -] 뒷면 | 힌트)</label>
+              <label>텍스트 대량 입력 (한 줄에 카드 1장: 앞면 [Tab 또는 ; 또는 -] 뒷면 | 힌트)</label>
               <textarea id="bulkCardsInput" rows="7" placeholder="la façade ; 입면, 파사드 | 건물 외관
 le plan ; 평면도
 l'élévation ; 입면도
