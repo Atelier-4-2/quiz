@@ -1063,7 +1063,6 @@
               <option value="architect" ${state.quizType === "architect" ? "selected" : ""}>건축가</option>
               <option value="name" ${state.quizType === "name" ? "selected" : ""}>건물명</option>
               <option value="year" ${state.quizType === "year" ? "selected" : ""}>연도</option>
-              <option value="location" ${state.quizType === "location" ? "selected" : ""}>장소</option>
             </select>
           `;
         } else {
@@ -1164,7 +1163,6 @@
             <div class="meta-grid">
               <div class="meta-item"><div class="meta-label">Projet</div><div class="meta-val">${escapeHtml(c.name)}</div></div>
               <div class="meta-item"><div class="meta-label">Architecte</div><div class="meta-val">${escapeHtml(c.architect)}</div></div>
-              <div class="meta-item"><div class="meta-label">Lieu</div><div class="meta-val">${escapeHtml(c.location)}</div></div>
               <div class="meta-item"><div class="meta-label">Date (Slide)</div><div class="meta-val">${escapeHtml(c.year)}</div></div>
             </div>
             ${c.desc ? `<div class="desc-fr">${escapeHtml(c.desc)}</div>` : ""}
@@ -1318,7 +1316,7 @@
           stageHtml = `
             <div class="quizlet-back">
               <div class="quizlet-back-head">
-                <div class="quizlet-back-year">${escapeHtml(c.year)} · ${escapeHtml(c.location)}</div>
+                <div class="quizlet-back-year">${escapeHtml(c.year)}</div>
                 <h2 class="quizlet-back-name">${escapeHtml(c.name)}</h2>
                 <div class="quizlet-back-arch">${escapeHtml(c.architect)}</div>
               </div>
@@ -1390,11 +1388,11 @@
       let title = "", sub = "", correct = "", opts = [], resolvedType = type;
 
       if (deck.kind === "architecture") {
-        resolvedType = type === "random"
+        resolvedType = (type === "random" || !["architect", "name", "year"].includes(type))
           ? ["architect", "name", "year"][Math.floor(Math.random() * 3)]
           : type;
         if (resolvedType === "architect") {
-          title = c.name; sub = `${c.location} · 건축가는?`; correct = c.architect;
+          title = c.name; sub = `${c.year} · 건축가는?`; correct = c.architect;
           const picks = [];
           for (const o of others) if (o.architect !== correct && !picks.includes(o.architect)) { picks.push(o.architect); if (picks.length === 3) break; }
           opts = shuffle([correct, ...picks]);
@@ -1550,11 +1548,11 @@
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;align-items:start;">
                   ${renderMediaPane(c, !rev)}
                   <div>
-                    <h2 class="project-title">${escapeHtml(c.name)}</h2>
+                    <h2 class="project-title">${rev ? escapeHtml(c.name) : "이 건물은?"}</h2>
                     <div class="field-stack">
+                      <div class="field-row"><label>Projet</label><input type="text" placeholder="건물 이름"></div>
                       <div class="field-row"><label>Architecte</label><input type="text" placeholder="건축가"></div>
-                      <div class="field-row"><label>Lieu</label><input type="text" placeholder="장소"></div>
-                      <div class="field-row"><label>Date</label><input type="text" placeholder="연도"></div>
+                      <div class="field-row"><label>Date</label><input type="text" placeholder="연도 (슬라이드)"></div>
                     </div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
                       <button class="btn primary" data-rev="${escapeHtml(c.id)}">${rev ? "정답 접기" : "정답 확인"}</button>
