@@ -650,7 +650,7 @@
       mode: "photo",
       chapter: "ALL",
       onlyWeak: false,
-      quizType: "architect",
+      quizType: "random",
       pool: [],
       index: 0,
       answered: false,
@@ -760,6 +760,7 @@
       if (state.mode === "quiz") {
         html += `
           <select id="quizTypeSelect" aria-label="출제 유형">
+            <option value="random" ${state.quizType === "random" ? "selected" : ""}>랜덤 (건축가·건물명·연도)</option>
             <option value="architect" ${state.quizType === "architect" ? "selected" : ""}>건축가</option>
             <option value="name" ${state.quizType === "name" ? "selected" : ""}>건물명</option>
             <option value="year" ${state.quizType === "year" ? "selected" : ""}>연도</option>
@@ -967,17 +968,20 @@
 
     let cachedKey = "", cachedQ = null;
     function buildQuestion(p, type) {
+      const resolvedType = type === "random"
+        ? ["architect", "name", "year"][Math.floor(Math.random() * 3)]
+        : type;
       const others = shuffle(PROJECTS.filter(x => x.id !== p.id));
       let title = "", sub = "", correct = "", opts = [];
-      if (type === "architect") {
+      if (resolvedType === "architect") {
         title = p.name; sub = `${p.location} · 건축가는?`; correct = p.architect;
         const picks = [];
         for (const o of others) if (o.architect !== correct && !picks.includes(o.architect)) { picks.push(o.architect); if (picks.length === 3) break; }
         opts = shuffle([correct, ...picks]);
-      } else if (type === "name") {
+      } else if (resolvedType === "name") {
         title = `${p.architect} (${p.year})`; sub = p.desc; correct = p.name;
         opts = shuffle([correct, ...others.slice(0, 3).map(o => o.name)]);
-      } else if (type === "year") {
+      } else if (resolvedType === "year") {
         title = p.name; sub = `${p.architect} · 슬라이드 기준 연도는?`; correct = p.year;
         const picks = [];
         for (const o of others) if (o.year !== correct && !picks.includes(o.year)) { picks.push(o.year); if (picks.length === 3) break; }
@@ -988,7 +992,7 @@
         for (const o of others) if (o.location !== correct && !picks.includes(o.location)) { picks.push(o.location); if (picks.length === 3) break; }
         opts = shuffle([correct, ...picks]);
       }
-      return { title, sub, correct, opts };
+      return { title, sub, correct, opts, resolvedType };
     }
 
     function renderQuiz(main) {
@@ -1005,7 +1009,7 @@
 
       main.innerHTML = `
         <div class="split-card">
-          ${renderMediaPane(p, state.quizType === "name" && !state.answered)}
+          ${renderMediaPane(p, q.resolvedType === "name" && !state.answered)}
           <div class="content-pane">
             <div class="content-scroll">
               <div class="card-top">
