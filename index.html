@@ -691,9 +691,9 @@
   <main class="workspace">
     <div class="toolbar">
       <div class="mode-tabs" id="modeTabs">
-        <button class="pill-btn active" data-mode="photo">사진 퀴즈</button>
-        <button class="pill-btn" data-mode="flashcard">플래시카드</button>
+        <button class="pill-btn active" data-mode="flashcard">플래시카드</button>
         <button class="pill-btn" data-mode="quiz">4지선다</button>
+        <button class="pill-btn" data-mode="photo">사진 퀴즈</button>
         <button class="pill-btn" data-mode="exam">실전 3문제</button>
         <button class="pill-btn" data-mode="pairs">헷갈리는 6쌍</button>
         <button class="pill-btn" data-mode="list">전체 30개</button>
@@ -756,7 +756,7 @@
 
     let progress = loadProgress();
     let state = {
-      mode: "photo",
+      mode: "flashcard",
       chapter: "ALL",
       onlyWeak: false,
       quizType: "random",
