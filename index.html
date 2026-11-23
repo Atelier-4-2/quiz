@@ -1144,7 +1144,16 @@
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+    function safeImgUrl(u) {
+      const s = String(u || "").trim();
+      if (!s) return "";
+      if (/^images\/[A-Za-z0-9._/?=&-]+$/.test(s)) return s;
+      if (/^https:\/\/[^\s"'<>]+$/i.test(s)) return s;
+      if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(s)) return s;
+      return "";
     }
 
     function getCardRec(cardId) {
@@ -1211,15 +1220,22 @@
     }
 
     function openZoom(src) {
-      document.getElementById("lightboxImg").src = src;
+      const safe = safeImgUrl(src);
+      if (!safe) return;
+      document.getElementById("lightboxImg").src = safe;
       document.getElementById("lightbox").classList.add("open");
     }
+    document.addEventListener("click", e => {
+      const img = e.target.closest && e.target.closest("img[data-zoom]");
+      if (img) openZoom(img.getAttribute("src"));
+    });
 
     function renderMediaPane(c, hideTitle = false) {
-      if (c.img) {
+      const src = safeImgUrl(c.img);
+      if (src) {
         return `
           <div class="media-pane">
-            <img src="${escapeHtml(c.img)}" alt="${hideTitle ? "Quiz image" : escapeHtml(c.front)}" onclick="openZoom('${escapeHtml(c.img)}')">
+            <img src="${escapeHtml(src)}" alt="${hideTitle ? "Quiz image" : escapeHtml(c.front)}" data-zoom="1">
           </div>
         `;
       }
@@ -1872,7 +1888,7 @@
               <div class="list-row ${showThumb ? "" : "no-thumb"}">
                 ${showThumb ? `
                   <div class="list-thumb">
-                    ${c.img ? `<img src="${escapeHtml(c.img)}" alt="${escapeHtml(c.front)}" loading="lazy" onclick="openZoom('${escapeHtml(c.img)}')">` : `<a href="${googleImgUrl(c)}" target="_blank" rel="noopener">구글 이미지 ↗</a>`}
+                    ${safeImgUrl(c.img) ? `<img src="${escapeHtml(safeImgUrl(c.img))}" alt="${escapeHtml(c.front)}" loading="lazy" data-zoom="1">` : `<a href="${googleImgUrl(c)}" target="_blank" rel="noopener">구글 이미지 ↗</a>`}
                   </div>
                 ` : ""}
                 <div>
@@ -2221,6 +2237,7 @@ la coupe ; 단면도"></textarea>
               imported.id = `custom_${Date.now()}`;
               imported.builtin = false;
               imported.updatedAt = Date.now();
+              imported.cards = imported.cards.map(c => ({ ...c, img: safeImgUrl(c.img) }));
               customDecks.push(imported);
               saveDecksAndSync();
               activeDeckId = imported.id;
