@@ -834,6 +834,10 @@
       .home-card h2 { margin: 6px 0 4px; font-size: 18px; }
       .home-card button { margin-top: 8px; min-height: 36px; }
     }
+    .nav-right { min-width: 0; }
+    .site-switch { min-width: 0; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .site-switch::-webkit-scrollbar { display: none; }
+    .site-switch a { flex: none; white-space: nowrap; }
   </style>
 </head>
 <body class="viewport-fit">
@@ -846,11 +850,16 @@
         <div class="deck-bar">
           <select class="deck-select" id="deckSelect" aria-label="학습 덱 선택"></select>
           <button class="btn sm" id="openDeckModalBtn" title="덱 만들기 / 가져오기 / 관리">+ 덱</button>
+          <button class="btn sm" id="btnQuizDrive" title="Google Drive 덱 동기화">Drive</button>
         </div>
         <span class="stat-pill ok" id="statMastered">암기 0/0</span>
         <span class="stat-pill bad" id="statReview">복습 0</span>
         <nav class="site-switch" aria-label="Atelier 4·2 사이트 전환">
           <a href="https://atelier-4-2.github.io/site/">Terrain</a>
+          <a href="https://atelier-4-2.github.io/board/">Board</a>
+          <a href="https://atelier-4-2.github.io/view/">View</a>
+          <a href="https://atelier-4-2.github.io/crit/">Crit</a>
+          <a href="https://atelier-4-2.github.io/share/">Share</a>
           <a href="#home" aria-current="page">Quiz</a>
         </nav>
       </div>
@@ -888,14 +897,198 @@
   </div>
 
   <script src="srs.js?v=20261118h"></script>
-  <script src="decks.js?v=20261118h"></script>
+  <script src="decks.js?v=20261123h"></script>
   <script>
     const SRS = window.AtelierSRS;
     const { BUILTIN_DECKS, parseBulkText } = window.AtelierDecks;
+    const GOOGLE_CLIENT_ID = "333501036096-o6m50cvb01b4t49kcedi4jq4a7kv42i3.apps.googleusercontent.com";
+    const QUIZ_DRIVE_PROJECT = "Atelier 4·2 Quiz";
 
     let progress = SRS.loadAllProgress();
     let customDecks = SRS.loadCustomDecks();
     let activeDeckId = SRS.getActiveDeckId(BUILTIN_DECKS[0].id);
+    let quizCloud = null, quizCloudUser = null, quizCloudProj = null, quizSyncing = false;
+
+    function updateDriveBtnUi() {
+      const b = document.getElementById("btnQuizDrive");
+      if (b) b.textContent = quizCloudUser ? "Drive ●" : "Drive";
+      const hb = document.getElementById("homeDriveBtn");
+      if (hb) hb.textContent = quizCloudUser ? "Drive 연결됨 ●" : "Drive 로그인";
+    }
+    async function ensureQuizDriveProject() {
+      if (!quizCloud || !quizCloudUser) return null;
+      if (quizCloudProj) return quizCloudProj;
+      const list = await quizCloud.listProjects();
+      const found = list.find(p => p.name === QUIZ_DRIVE_PROJECT);
+      quizCloudProj = found ? await quizCloud.openProject(found.id) : await quizCloud.createProject(QUIZ_DRIVE_PROJECT);
+      return quizCloudProj;
+    }
+    function mergeDecks(localList, remoteList) {
+      const byId = new Map();
+      for (const d of (remoteList || [])) if (d && d.id && !d.builtin) byId.set(d.id, d);
+      for (const d of (localList || [])) {
+        if (!d || !d.id || d.builtin) continue;
+        const prev = byId.get(d.id);
+        if (!prev || (d.updatedAt || 0) >= (prev.updatedAt || 0)) byId.set(d.id, d);
+      }
+      return [...byId.values()];
+    }
+    async function syncDecksWithDrive(pushLocal) {
+      if (!quizCloud || !quizCloudUser || quizSyncing) return;
+      quizSyncing = true;
+      try {
+        const proj = await ensureQuizDriveProject();
+        if (!proj) return;
+        let remoteDecks = [];
+        try {
+          const r = await proj.readJson("files/decks.json");
+          if (r && r.data && Array.isArray(r.data.decks)) remoteDecks = r.data.decks;
+        } catch (e) { /* first sync: file does not exist yet */ }
+        if (!pushLocal) {
+          customDecks = mergeDecks(customDecks, remoteDecks);
+          SRS.saveCustomDecks(customDecks);
+        }
+        await proj.writeJson("files/decks.json", { v: 1, updatedAt: Date.now(), decks: customDecks }, {});
+        if (typeof render === "function") render();
+      } catch (e) {
+        console.warn("Quiz Drive sync failed:", e);
+      } finally {
+        quizSyncing = false;
+        updateDriveBtnUi();
+      }
+    }
+    function saveDecksAndSync() {
+      SRS.saveCustomDecks(customDecks);
+      if (quizCloudUser) syncDecksWithDrive(true);
+    }
+    async function initQuizCloud() {
+      try {
+        const m = await import("./atelier-cloud.js");
+        quizCloud = m.createCloud({ googleClientId: GOOGLE_CLIENT_ID, rootFolderName: "Atelier 4·2 Share" });
+        const ok = await quizCloud.restore();
+        if (ok) {
+          quizCloudUser = quizCloud.session();
+          updateDriveBtnUi();
+          await syncDecksWithDrive(false);
+        }
+      } catch (e) { /* offline or unavailable */ }
+    }
+    async function handleQuizDriveClick() {
+      if (!quizCloud) await initQuizCloud();
+      if (!quizCloud) { alert("Google Drive 연결을 준비하지 못했습니다."); return; }
+      if (!quizCloudUser) {
+        try {
+          await quizCloud.signIn("google");
+          quizCloudUser = quizCloud.session();
+          updateDriveBtnUi();
+          await syncDecksWithDrive(false);
+          alert("Google Drive에 연결되었습니다. 내 덱이 자동으로 저장·동기화됩니다.");
+        } catch (e) {
+          alert("Google 로그인을 완료하지 못했습니다.");
+        }
+      } else {
+        const choice = confirm(`Google Drive(${quizCloudUser.email || "연결됨"})와 동기화 중입니다.\n\n[확인] 지금 다시 동기화\n[취소] 로그아웃 여부 선택`);
+        if (choice) {
+          await syncDecksWithDrive(false);
+          alert("Drive 동기화를 마쳤습니다.");
+        } else if (confirm("Google Drive 연결을 해제(로그아웃)할까요? 로컬 덱은 유지됩니다.")) {
+          await quizCloud.signOut();
+          quizCloudUser = null; quizCloudProj = null;
+          updateDriveBtnUi();
+          render();
+        }
+      }
+    }
+    function resizeCardImage(file) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file), img = new Image();
+        img.onload = () => {
+          const max = 800, k = Math.min(1, max / img.naturalWidth, max / img.naturalHeight);
+          const c = document.createElement("canvas");
+          c.width = Math.max(1, Math.round(img.naturalWidth * k));
+          c.height = Math.max(1, Math.round(img.naturalHeight * k));
+          const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          resolve(c.toDataURL("image/jpeg", 0.82));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("img")); };
+        img.src = url;
+      });
+    }
+    let xlsxLoaded = null;
+    function loadXlsxLib() {
+      if (window.XLSX) return Promise.resolve(window.XLSX);
+      if (xlsxLoaded) return xlsxLoaded;
+      xlsxLoaded = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
+        s.onload = () => resolve(window.XLSX);
+        s.onerror = () => { xlsxLoaded = null; reject(new Error("xlsx-load-failed")); };
+        document.head.appendChild(s);
+      });
+      return xlsxLoaded;
+    }
+    function rowsToCards(rows) {
+      const clean = (rows || []).map(r => (Array.isArray(r) ? r : []).map(v => String(v == null ? "" : v).trim())).filter(r => r.some(Boolean));
+      if (!clean.length) return [];
+      const first = clean[0].map(h => h.toLowerCase());
+      const findCol = re => first.findIndex(h => re.test(h));
+      let iFront = findCol(/^(앞면|front|question|term|질문|단어|문제|표제어|word)$/);
+      let iBack = findCol(/^(뒷면|back|answer|definition|정답|뜻|설명|의미|meaning)$/);
+      let iTip = findCol(/^(팁|메모|힌트|tip|hint|note|memo|설명2)$/);
+      let iCh = findCol(/^(단원|태그|카테고리|chapter|tag|category|deck|분류)$/);
+      let iImg = findCol(/^(이미지|사진|image|img|photo|url)$/);
+      const hasHeader = iFront >= 0 || iBack >= 0;
+      if (iFront < 0) iFront = 0;
+      if (iBack < 0) iBack = iFront === 0 ? 1 : 0;
+      if (!hasHeader) { iTip = 2; iCh = 3; iImg = 4; }
+      const dataRows = hasHeader ? clean.slice(1) : clean;
+      const now = Date.now(), cards = [];
+      dataRows.forEach((r, idx) => {
+        const front = r[iFront] || "", back = r[iBack] || "";
+        if (!front || !back) return;
+        const img = (iImg >= 0 && r[iImg] && /^https?:\/\/|^data:image\//i.test(r[iImg])) ? r[iImg] : "";
+        cards.push({
+          id: `c_${now}_${idx}`,
+          chapter: (iCh >= 0 && r[iCh]) ? r[iCh] : "일반",
+          front, back, sub: "", desc: back,
+          koTip: (iTip >= 0 && r[iTip]) ? r[iTip] : "",
+          img
+        });
+      });
+      return cards;
+    }
+    async function parseSpreadsheetFile(file) {
+      const name = file.name || "";
+      if (/\.(csv|tsv|txt)$/i.test(name)) {
+        const buf = await file.arrayBuffer();
+        let text = "";
+        try { text = new TextDecoder("utf-8", { fatal: true }).decode(buf); }
+        catch { text = new TextDecoder("euc-kr").decode(buf); }
+        text = text.replace(/^\uFEFF/, "");
+        if (/\.txt$/i.test(name) && !text.includes(",") && !text.includes("\t")) return parseBulkText(text);
+        const sep = text.includes("\t") ? "\t" : ",";
+        const rows = text.split(/\r?\n/).filter(Boolean).map(line => {
+          if (sep === "\t") return line.split("\t");
+          const out = []; let cur = "", inQ = false;
+          for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') { if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+            else if (ch === "," && !inQ) { out.push(cur); cur = ""; }
+            else cur += ch;
+          }
+          out.push(cur);
+          return out;
+        });
+        return rowsToCards(rows);
+      }
+      const XLSX = await loadXlsxLib();
+      const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+      return rowsToCards(rows);
+    }
 
     function getAllDecks() {
       return [...BUILTIN_DECKS, ...customDecks];
@@ -1685,11 +1878,15 @@
                 <div>
                   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
                     <div><span class="chapter-badge" style="margin-right:6px;">${escapeHtml(c.chapter || "일반")}</span><strong>${idx + 1}. ${escapeHtml(c.front)}</strong></div>
-                    <select data-st-id="${escapeHtml(c.id)}" style="min-height:30px;padding:3px 10px;border-radius:980px;border:1px solid var(--line);background:var(--surface);font-size:12px;font-weight:600;">
-                      <option value="new" ${st === "new" ? "selected" : ""}>미학습</option>
-                      <option value="review" ${st === "review" ? "selected" : ""}>복습${dueText}</option>
-                      <option value="mastered" ${st === "mastered" ? "selected" : ""}>암기${dueText}</option>
-                    </select>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      ${!deck.builtin ? `<label class="btn sm" style="cursor:pointer;min-height:30px;padding:3px 10px;font-size:12px;">${c.img ? "사진 변경" : "+ 사진"}<input type="file" data-card-img="${escapeHtml(c.id)}" accept="image/png,image/jpeg,image/webp" style="display:none;"></label>` : ""}
+                      <select data-st-id="${escapeHtml(c.id)}" style="min-height:30px;padding:3px 10px;border-radius:980px;border:1px solid var(--line);background:var(--surface);font-size:12px;font-weight:600;">
+                        <option value="new" ${st === "new" ? "selected" : ""}>미학습</option>
+                        <option value="review" ${st === "review" ? "selected" : ""}>복습${dueText}</option>
+                        <option value="mastered" ${st === "mastered" ? "selected" : ""}>암기${dueText}</option>
+                      </select>
+                      ${!deck.builtin ? `<button type="button" class="btn sm bad" data-card-del="${escapeHtml(c.id)}" style="min-height:30px;padding:3px 8px;font-size:12px;" title="카드 삭제">✕</button>` : ""}
+                    </div>
                   </div>
                   <div style="font-size:13.5px;color:var(--muted);margin:4px 0;"><strong>${escapeHtml(c.back)}</strong>${c.sub ? ` · ${escapeHtml(c.sub)}` : ""}</div>
                   ${c.desc && c.desc !== c.back ? `<div style="font-size:13.5px;">${escapeHtml(c.desc)}</div>` : ""}
@@ -1711,6 +1908,26 @@
           setSimpleStatus(id, val);
         }
       }));
+      main.querySelectorAll("[data-card-img]").forEach(inp => inp.addEventListener("change", async e => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const card = deck.cards.find(x => x.id === inp.dataset.cardImg);
+        if (!card) return;
+        try {
+          card.img = await resizeCardImage(file);
+          deck.updatedAt = Date.now();
+          saveDecksAndSync();
+          render();
+        } catch { alert("이미지를 읽지 못했습니다."); }
+      }));
+      main.querySelectorAll("[data-card-del]").forEach(btn => btn.addEventListener("click", () => {
+        if (!confirm("이 카드를 삭제할까요?")) return;
+        deck.cards = deck.cards.filter(x => x.id !== btn.dataset.cardDel);
+        deck.updatedAt = Date.now();
+        saveDecksAndSync();
+        rebuildPool();
+        render();
+      }));
     }
 
     function renderHome(main) {
@@ -1730,16 +1947,18 @@
       if (deck.pairs && deck.pairs.length) items.push({ id: "pairs", t: `헷갈리는 ${deck.pairs.length}쌍`, d: "같은 연도, 같은 건축가처럼 자주 섞이는 것들을 나란히 봅니다." });
       items.push({ id: "list", t: `전체 ${total}개`, d: "모든 카드를 한 번에 훑어보고 검색합니다." });
 
+      const isExample = !!deck.builtin;
       main.innerHTML = `
         <section class="home" aria-labelledby="homeTitle">
           <p class="home-eyebrow">Atelier 4·2 · Quiz</p>
-          <h1 id="homeTitle">${isArch ? "사진 보고<br>이름 · 건축가 · 연도" : escapeHtml(deck.title)}</h1>
-          <p class="home-sub">${isArch ? "강의 슬라이드 사진과 문구로 만든 카드입니다. 하나씩 외우고, 실전 3문제로 확인하세요." : escapeHtml(deck.subtitle || "카드를 골라 학습을 시작하세요.")}</p>
+          <h1 id="homeTitle">${isExample ? "나만의 플래시카드" : escapeHtml(deck.title)}</h1>
+          <p class="home-sub">${isExample ? "앞면·뒷면으로 카드를 만들어 반복 암기합니다. 기본 덱은 예시로 제공됩니다." : escapeHtml(deck.subtitle || "앞면을 보고 떠올린 뒤 뒤집어 확인하세요.")}</p>
           <div class="home-deck">
             <select class="deck-select" id="homeDeckSelect" aria-label="학습 덱 선택">
               ${getAllDecks().map(d => `<option value="${escapeHtml(d.id)}" ${d.id === deck.id ? "selected" : ""}>${escapeHtml(d.title)} (${d.cards.length})</option>`).join("")}
             </select>
-            <button class="btn sm" id="homeDeckBtn">+ 덱</button>
+            <button class="btn sm primary" id="homeDeckBtn">+ 새 덱 만들기</button>
+            <button class="btn sm" id="homeDriveBtn">${quizCloudUser ? "Drive 연결됨 ●" : "Drive 로그인"}</button>
           </div>
           <div class="home-stats">
             <div class="home-stat"><b>${mastered}/${total}</b><span>암기</span></div>
@@ -1756,7 +1975,7 @@
                 <button type="button" data-go="${it.id}">시작하기 ›</button>
               </li>`).join("")}
           </ul>
-          <p class="home-note">진도는 이 기기 브라우저에 저장됩니다.</p>
+          <p class="home-note">${quizCloudUser ? "내 덱은 Google Drive에 자동 저장·동기화됩니다. (기본 덱은 예시로 유지)" : "로그인하지 않으면 내 덱은 이 브라우저에만 저장됩니다. Google 로그인 시 Drive에 자동 저장됩니다."}</p>
         </section>
       `;
       main.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.go)));
@@ -1766,6 +1985,7 @@
         sel.dispatchEvent(new Event("change"));
       });
       document.getElementById("homeDeckBtn").addEventListener("click", () => document.getElementById("openDeckModalBtn").click());
+      document.getElementById("homeDriveBtn").addEventListener("click", () => handleQuizDriveClick());
     }
 
     function renderMain() {
@@ -1818,31 +2038,61 @@
               <input type="text" id="newDeckSub" placeholder="예: 기말고사 대비 핵심 단어장">
             </div>
             <div class="field-row">
-              <label>텍스트 대량 입력 (한 줄에 카드 1장: 앞면 [Tab 또는 ; 또는 -] 뒷면 | 힌트)</label>
-              <textarea id="bulkCardsInput" rows="7" placeholder="la façade ; 입면, 파사드 | 건물 외관
+              <label>엑셀(.xlsx) · CSV 파일로 바로 불러오기 (Anki / Quizlet 방식)</label>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <label class="btn sm" style="cursor:pointer;">
+                  엑셀 / CSV 파일 선택
+                  <input type="file" id="excelDeckFile" accept=".xlsx,.xls,.csv,.tsv,.txt" style="display:none;">
+                </label>
+                <span id="excelFileStatus" style="font-size:12px;color:var(--muted);">1열: 앞면 · 2열: 뒷면 · 3열: 메모(선택) · 4열: 단원(선택)</span>
+              </div>
+            </div>
+            <div class="field-row">
+              <label>또는 텍스트 대량 입력 (한 줄에 카드 1장: 앞면 [Tab 또는 ; 또는 -] 뒷면 | 힌트)</label>
+              <textarea id="bulkCardsInput" rows="6" placeholder="la façade ; 입면, 파사드 | 건물 외관
 le plan ; 평면도
 l'élévation ; 입면도
 la coupe ; 단면도"></textarea>
             </div>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-            <span id="bulkPreviewCount" style="font-size:12.5px;color:var(--muted);">0장 인식됨</span>
+            <span id="bulkPreviewCount" style="font-size:12.5px;color:var(--muted);">0장 인식됨 · ${quizCloudUser ? "Google Drive에 자동 저장" : "이 브라우저에 저장"}</span>
             <button class="btn primary" id="createDeckSubmitBtn">덱 생성하고 바로 학습하기</button>
           </div>
         `;
 
         const ta = document.getElementById("bulkCardsInput");
         const countEl = document.getElementById("bulkPreviewCount");
+        let uploadedExcelCards = null;
+        const updateCount = n => { countEl.textContent = `${n}장 인식됨 · ${quizCloudUser ? "Google Drive에 자동 저장" : "이 브라우저에 저장"}`; };
         ta.addEventListener("input", () => {
-          const parsed = parseBulkText(ta.value);
-          countEl.textContent = `${parsed.length}장 인식됨`;
+          uploadedExcelCards = null;
+          updateCount(parseBulkText(ta.value).length);
+        });
+        document.getElementById("excelDeckFile").addEventListener("change", async e => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          const stEl = document.getElementById("excelFileStatus");
+          stEl.textContent = "파일을 읽는 중…";
+          try {
+            const parsed = await parseSpreadsheetFile(file);
+            uploadedExcelCards = parsed;
+            if (!document.getElementById("newDeckTitle").value.trim()) {
+              document.getElementById("newDeckTitle").value = file.name.replace(/\.[^.]+$/, "");
+            }
+            ta.value = parsed.map(c => `${c.front}\t${c.back}${c.koTip ? " | " + c.koTip : ""}`).join("\n");
+            stEl.textContent = `${file.name} (${parsed.length}장 불러옴)`;
+            updateCount(parsed.length);
+          } catch (err) {
+            stEl.textContent = "파일을 읽지 못했습니다. (.xlsx / .csv 확인)";
+          }
         });
         document.getElementById("createDeckSubmitBtn").addEventListener("click", () => {
           const title = document.getElementById("newDeckTitle").value.trim();
           const subtitle = document.getElementById("newDeckSub").value.trim();
-          const cards = parseBulkText(ta.value);
+          const cards = uploadedExcelCards && uploadedExcelCards.length ? uploadedExcelCards : parseBulkText(ta.value);
           if (!title) { alert("덱 이름을 입력해 주세요."); return; }
-          if (cards.length === 0) { alert("최소 1장 이상의 카드를 입력해 주세요. (예: 앞면 ; 뒷면)"); return; }
+          if (cards.length === 0) { alert("최소 1장 이상의 카드를 입력하거나 엑셀/CSV 파일을 올려 주세요."); return; }
 
           const newDeck = {
             id: `custom_${Date.now()}`,
@@ -1850,10 +2100,11 @@ la coupe ; 단면도"></textarea>
             subtitle,
             kind: "general",
             builtin: false,
+            updatedAt: Date.now(),
             cards
           };
           customDecks.push(newDeck);
-          SRS.saveCustomDecks(customDecks);
+          saveDecksAndSync();
           activeDeckId = newDeck.id;
           SRS.setActiveDeckId(activeDeckId);
           state.chapter = "ALL";
@@ -1875,15 +2126,19 @@ la coupe ; 단면도"></textarea>
             <div class="field-row"><label>앞면 (질문 / 단어)</label><input type="text" id="addCardFront" placeholder="앞면 내용"></div>
             <div class="field-row"><label>뒷면 (정답 / 뜻)</label><input type="text" id="addCardBack" placeholder="뒷면 내용"></div>
             <div class="field-row"><label>암기 팁 / 메모 (선택)</label><input type="text" id="addCardTip" placeholder="예: 헷갈리는 포인트"></div>
+            <div class="field-row"><label>이미지 첨부 (선택)</label><input type="file" id="addCardImg" accept="image/png,image/jpeg,image/webp"></div>
           </div>
           <button class="btn primary" id="addCardSubmitBtn">카드 추가</button>
         `;
-        document.getElementById("addCardSubmitBtn").addEventListener("click", () => {
+        document.getElementById("addCardSubmitBtn").addEventListener("click", async () => {
           const front = document.getElementById("addCardFront").value.trim();
           const back = document.getElementById("addCardBack").value.trim();
           const tip = document.getElementById("addCardTip").value.trim();
           const chapter = document.getElementById("addCardCh").value.trim() || "일반";
+          const imgFile = document.getElementById("addCardImg").files?.[0] || null;
           if (!front || !back) { alert("앞면과 뒷면을 모두 입력해 주세요."); return; }
+          let imgData = "";
+          if (imgFile) { try { imgData = await resizeCardImage(imgFile); } catch {} }
           deck.cards.push({
             id: `c_${Date.now()}`,
             chapter,
@@ -1892,14 +2147,16 @@ la coupe ; 단면도"></textarea>
             sub: "",
             desc: back,
             koTip: tip,
-            img: ""
+            img: imgData
           });
-          SRS.saveCustomDecks(customDecks);
+          deck.updatedAt = Date.now();
+          saveDecksAndSync();
           rebuildPool();
           render();
           document.getElementById("addCardFront").value = "";
           document.getElementById("addCardBack").value = "";
           document.getElementById("addCardTip").value = "";
+          document.getElementById("addCardImg").value = "";
           alert("카드가 추가되었습니다!");
         });
       } else {
@@ -1943,7 +2200,7 @@ la coupe ; 단면도"></textarea>
           btn.addEventListener("click", () => {
             if (!confirm("이 덱을 삭제할까요?")) return;
             customDecks = customDecks.filter(x => x.id !== btn.dataset.delDeck);
-            SRS.saveCustomDecks(customDecks);
+            saveDecksAndSync();
             if (activeDeckId === btn.dataset.delDeck) {
               activeDeckId = BUILTIN_DECKS[0].id;
               SRS.setActiveDeckId(activeDeckId);
@@ -1963,8 +2220,9 @@ la coupe ; 단면도"></textarea>
               if (!imported.title || !Array.isArray(imported.cards)) throw new Error("Invalid deck");
               imported.id = `custom_${Date.now()}`;
               imported.builtin = false;
+              imported.updatedAt = Date.now();
               customDecks.push(imported);
-              SRS.saveCustomDecks(customDecks);
+              saveDecksAndSync();
               activeDeckId = imported.id;
               SRS.setActiveDeckId(activeDeckId);
               rebuildPool();
@@ -1991,6 +2249,8 @@ la coupe ; 단면도"></textarea>
     });
 
     document.getElementById("openDeckModalBtn").addEventListener("click", () => openDeckModal("create"));
+    document.getElementById("btnQuizDrive").addEventListener("click", handleQuizDriveClick);
+    initQuizCloud();
     document.getElementById("closeDeckModalBtn").addEventListener("click", closeDeckModal);
     document.getElementById("deckModal").addEventListener("click", e => {
       if (e.target.id === "deckModal") closeDeckModal();

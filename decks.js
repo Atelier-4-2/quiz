@@ -69,8 +69,8 @@
   const BUILTIN_DECKS = [
     {
       id: 'histoire-30',
-      title: 'Histoire de l\'architecture',
-      subtitle: '건축사 30개 주요 프로젝트',
+      title: '예시 · Histoire de l\'architecture',
+      subtitle: '예시 덱 · 건축사 30개 주요 프로젝트',
       kind: 'architecture',
       builtin: true,
       hasPhotoMode: true,
