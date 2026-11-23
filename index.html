@@ -967,7 +967,7 @@
         quizCloud = m.createCloud({ googleClientId: GOOGLE_CLIENT_ID, rootFolderName: "Atelier 4·2 Share" });
         const ok = await quizCloud.restore();
         if (ok) {
-          quizCloudUser = quizCloud.session();
+          quizCloudUser = quizCloud.user || { emailAddress: "Google Drive" };
           updateDriveBtnUi();
           await syncDecksWithDrive(false);
         }
@@ -979,7 +979,7 @@
       if (!quizCloudUser) {
         try {
           await quizCloud.signIn("google");
-          quizCloudUser = quizCloud.session();
+          quizCloudUser = quizCloud.user || { emailAddress: "Google Drive" };
           updateDriveBtnUi();
           await syncDecksWithDrive(false);
           alert("Google Drive에 연결되었습니다. 내 덱이 자동으로 저장·동기화됩니다.");
